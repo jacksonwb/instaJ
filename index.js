@@ -12,9 +12,6 @@ const SEC = 'Secret';
 const app = express();
 const port = 3000;
 
-users.list(db, (row) => {
-	console.log(row)});
-
 // Middleware
 app.use(logger('dev'))
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -27,19 +24,19 @@ app.get('/', (req, res) => {
 	// res.send('Hello World');
 });
 
-app.get('/login', (req, res) => {
-	let options = {
-		root: path.join(__dirname, 'views')
-	}
-	res.sendFile('login.html', options);
-})
-
 app.get('/auth', (req, res) => {
 	if (req.user) {
 		res.send('Welcome, ' + req.user);
 	} else {
 		res.send('Not Authenticated');
 	}
+})
+
+app.get('/login', (req, res) => {
+	let options = {
+		root: path.join(__dirname, 'views')
+	}
+	res.sendFile('login.html', options);
 })
 
 app.post('/login', (req, res) => {
@@ -57,9 +54,16 @@ app.post('/login', (req, res) => {
 	})
 })
 
+app.get('/register', (req, res) => {
+	let options = {
+		root: path.join(__dirname, 'views')
+	}
+	res.sendFile('register.html', options);
+})
+
 app.get('/users', (req, res) => {
 	users.list(db, (data) => {
-		console.log(data);
+		res.send(data);
 	});
 	// db.all('SELECT * FROM users', function (err, row) {
 	// 	console.log(row)
