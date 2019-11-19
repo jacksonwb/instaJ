@@ -38,13 +38,13 @@ function login(db, email, password, callback) {
 	get_by_email(db, email, (user) => {
 		if (!user) {
 			console.log('no user')
-			callback(false)
+			callback(false, undefined)
 		} else if (user.password === password) {
 			console.log('good pass')
-			callback(true)
+			callback(true, user)
 		} else {
 			console.log('bad pass')
-			callback(false)
+			callback(false, undefined)
 		}
 	})
 }
