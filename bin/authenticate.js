@@ -39,7 +39,7 @@ function generateJWT(email, expire, secret) {
 
 function tokenIsCurrent(tokenData) {
 	let now = Date.now();
-	return tokenData.data.expire < now ? true : false;
+	return tokenData.data.expire > now ? true : false;
 }
 
 function authJWT(secret) {
