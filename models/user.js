@@ -14,28 +14,22 @@ function list(db, callback) {
 function add(db, name, email, password, pref_notify, is_verify) {
 	//validate here
 	bcrypt.hash(password, saltRounds).then((hash) => {
-		db.get('SELECT MAX (id_user) AS max FROM users', ((user) => {
-			return (err, row) => {
-				if (err) {
-					console.log(err);
-					return;
-				}
-				db.run('INSERT INTO users VALUES(?, ?, ?, ?, ?, ?)', [row.max + 1, ...user], (err) => {
-						if (err)
-							console.log(err);
-					})
-			}
-		})([name, email, hash, pref_notify, is_verify]))
+		db.run(`INSERT INTO
+				users (name, email, password, pref_notify, is_verify)
+				VALUES(?, ?, ?, ?, ?)`, [name, email, hash, pref_notify, is_verify], (err) => {
+			if (err)
+				console.log(err);
+			})
 	}).catch((err) => {
 		console.log('User add error:', err);
 	})
 }
 
 function get_by_email(db, email, callback) {
-	db.get('SELECT * FROM users WHERE email=?', email, (err, row) => {
-		if (err) {
-			console.error(err);
-			return;
+db.get('SELECT * FROM users WHERE email=?', email, (err, row) => {
+	if (err) {
+		console.error(err);
+		return;
 		}
 		callback(row);
 	})

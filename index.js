@@ -13,11 +13,12 @@ const app = express();
 const port = 3000;
 
 // TODO
-// Form validation for registration
-// Check if Verified before login
-// Resend email mechanism
+// Form validation for registration with feedback
 // Forgot password
 // Change User info
+
+// VIEWS
+// Template
 
 // Middleware
 app.use(logger('dev'))
@@ -49,11 +50,14 @@ app.get('/login', (req, res) => {
 })
 
 app.post('/login', (req, res) => {
-	users.login(db, req.body.email, req.body.password, (valid) => {
-		if (valid) {
+	users.login(db, req.body.email, req.body.password, (valid, user) => {
+		if (valid && user.is_verify) {
 			//generate Token and set in cookie
-			res.cookie('JWT', auth.generateJWT(req.body.email, 100000, SEC),{httpOnly: true, maxAge: 100000});
+			res.cookie('JWT', auth.generateJWT(user.email, 100000, SEC),{httpOnly: true, maxAge: 100000});
 			res.redirect('/auth');
+		} else if (valid && !user.is_verify) {
+			mail.mailValidate(user.email, user.name, `http://localhost:${port}/validate`, generateValidationToken(user.email, 100000, SEC));
+			res.send('Please Validate Email - Email resent');
 		} else {
 			let options = {
 				root: path.join(__dirname, 'views')
@@ -87,8 +91,18 @@ app.get('/validate', (req, res) => {
 
 // Register
 function validateRegistration(name, email, password) {
-	//perform validation here
-	return true
+	let tests = []
+	tests.push(/^[a-zA-Z0-9. ]+$/.test(name));
+	tests.push(/^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(email))
+	tests.push(password.length > 8)
+	tests.push(((password) => {
+		let hasUpperCase = /[A-Z]/.test(password);
+		let hasLowerCase = /[a-z]/.test(password);
+		let hasNumbers = /\d/.test(password);
+		let hasNonalphas = /\W/.test(password);
+		return (hasUpperCase + hasLowerCase + hasNumbers + hasNonalphas > 3)
+	})(password))
+	return tests
 }
 
 function generateValidationToken(email, expire, secret) {
@@ -106,13 +120,14 @@ app.post('/register', (req, res) => {
 	let name = req.body.name;
 	let email = req.body.email;
 	let password = req.body.password;
-	let pref_notify = req.body.pref_notify;
+	let pref_notify = Boolean(req.body.pref_notify);
 
-	if (validateRegistration(name, email, password)) {
+	if (validateRegistration(name, email, password).every(val => val)) {
 		users.add(db, name, email, password, pref_notify, 0);
 		mail.mailValidate(email, name, `http://localhost:${port}/validate`, generateValidationToken(email, 100000, SEC));
 		res.send('Confirmation Email Sent');
 	} else {
+		console.log('Invalid registration')
 		res.redirect('/register')
 	}
 })
@@ -122,10 +137,6 @@ app.get('/users', (req, res) => {
 	users.list(db, (data) => {
 		res.send(data);
 	});
-	// db.all('SELECT * FROM users', function (err, row) {
-	// 	console.log(row)
-	// 	res.json(row);
-	// })
 });
 
 app.get('/users/:user', (req, res) => {
