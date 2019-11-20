@@ -13,12 +13,8 @@ const app = express();
 const port = 3000;
 
 // TODO
-// Form validation for registration with feedback
 // Forgot password
 // Change User info
-
-// VIEWS
-// Template
 
 // Middleware
 app.use(logger('dev'))
@@ -91,18 +87,25 @@ app.get('/validate', (req, res) => {
 
 // Register
 function validateRegistration(name, email, password) {
-	let tests = []
-	tests.push(/^[a-zA-Z0-9. ]+$/.test(name));
-	tests.push(/^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(email))
-	tests.push(password.length > 8)
-	tests.push(((password) => {
-		let hasUpperCase = /[A-Z]/.test(password);
-		let hasLowerCase = /[a-z]/.test(password);
-		let hasNumbers = /\d/.test(password);
-		let hasNonalphas = /\W/.test(password);
-		return (hasUpperCase + hasLowerCase + hasNumbers + hasNonalphas > 3)
-	})(password))
-	return tests
+	return new Promise((resolve, reject) => {
+		let tests = []
+		tests.push(/^[a-zA-Z0-9. ]+$/.test(name));
+		tests.push(/^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(email))
+		tests.push(password.length > 8)
+		tests.push(((password) => {
+			let hasUpperCase = /[A-Z]/.test(password);
+			let hasLowerCase = /[a-z]/.test(password);
+			let hasNumbers = /\d/.test(password);
+			let hasNonalphas = /\W/.test(password);
+			return (hasUpperCase + hasLowerCase + hasNumbers + hasNonalphas > 3)
+		})(password))
+		users.get_by_email
+
+		users.get_by_email(db, email, (row) => {
+			tests.push(!Boolean(row))
+			resolve(tests)
+		})
+	})
 }
 
 function generateValidationToken(email, expire, secret) {
@@ -121,15 +124,16 @@ app.post('/register', (req, res) => {
 	let email = req.body.email;
 	let password = req.body.password;
 	let pref_notify = Boolean(req.body.pref_notify);
-
-	if (validateRegistration(name, email, password).every(val => val)) {
-		users.add(db, name, email, password, pref_notify, 0);
-		mail.mailValidate(email, name, `http://localhost:${port}/validate`, generateValidationToken(email, 100000, SEC));
-		res.send('Confirmation Email Sent');
-	} else {
-		console.log('Invalid registration')
-		res.redirect('/register')
-	}
+	validateRegistration(name, email, password).then((tests) => {
+		if (tests.every(val => val)) {
+			users.add(db, name, email, password, pref_notify, 0);
+			mail.mailValidate(email, name, `http://localhost:${port}/validate`, generateValidationToken(email, 100000, SEC));
+			res.send('Confirmation Email Sent');
+		} else {
+			console.log('Invalid registration')
+			res.redirect('/register')
+		}
+	})
 })
 
 //Users
