@@ -33,7 +33,8 @@ function decodeToken(token) {
 function generateJWT(email, expire, secret) {
 	const ob = {
 		'email': email,
-		'expire': Date.now() + expire};
+		'expire': Date.now() + expire,
+		'fn': 'auth'};
 	return signToken(ob, secret);
 }
 
@@ -47,8 +48,10 @@ function authJWT(secret) {
 		let tokenData = undefined;
 		if (req.cookies.JWT) {
 			tokenData = decodeToken(req.cookies.JWT)
+			console.log(tokenData)
 		}
-		if (req.cookies.JWT && tokenIsCurrent(tokenData)
+		if (req.cookies.JWT && tokenData.data.fn === 'auth'
+			&& tokenIsCurrent(tokenData)
 			&& verifyToken(req.cookies.JWT, secret)) {
 			req.user = tokenData.data.email;
 		}

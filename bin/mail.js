@@ -35,6 +35,15 @@ function mailValidate(email, name, validateUrl, token) {
 	mail(info).catch(console.error);
 }
 
+function mailReset(email, name, resetURL, token) {
+	let info = {
+		from: 'Jackson <jackson@camagru.com>', // sender address
+		to: email,
+		subject: 'Reset Camagru Email Address',
+		html: `<a href=${resetURL}?token=${token}>Click to reset password</a>`
+	}
+	mail(info).catch(console.error);
+}
 // let info = {
 // 	from: 'Jackson <jackson@camagru.com>', // sender address
 // 	to: "bar@example.com",
@@ -45,4 +54,4 @@ function mailValidate(email, name, validateUrl, token) {
 
 // mail(info).catch(console.error);
 
-module.exports = {mail, mailValidate};
+module.exports = {mail, mailValidate, mailReset};

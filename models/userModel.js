@@ -65,4 +65,22 @@ function login(db, email, password, callback) {
 	})
 }
 
-module.exports = {list, add, get_by_email, login, validateEmail}
+function updateUserValue(db, email, field, value) {
+	db.run(`UPDATE users
+			SET ${field} = ?
+			WHERE email = ?`, [value, email], (err) => {
+				if (err) {
+					console.error(err);
+					return;
+				}
+			})
+}
+
+function updateUserPassword(db, email, password) {
+	// validate password
+	bcrypt.hash(password, saltRounds).then((hash) => {
+		updateUserValue(db, email, 'password', hash)
+	})
+}
+
+module.exports = {list, add, get_by_email, login, validateEmail, updateUserValue, updateUserPassword}

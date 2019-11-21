@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const db = require('./bin/db')
-const users = require('./models/user');
+const userModel = require('./models/userModel');
 const auth = require('./bin/authenticate');
 const SEC = 'Secret';
 const mail = require('./bin/mail');
@@ -13,7 +13,6 @@ const app = express();
 const port = 3000;
 
 // TODO
-// Forgot password
 // Change User info
 
 // Middleware
@@ -46,7 +45,7 @@ app.get('/login', (req, res) => {
 })
 
 app.post('/login', (req, res) => {
-	users.login(db, req.body.email, req.body.password, (valid, user) => {
+	userModel.login(db, req.body.email, req.body.password, (valid, user) => {
 		if (valid && user.is_verify) {
 			//generate Token and set in cookie
 			res.cookie('JWT', auth.generateJWT(user.email, 100000, SEC),{httpOnly: true, maxAge: 100000});
@@ -63,6 +62,69 @@ app.post('/login', (req, res) => {
 	})
 })
 
+// Restore Password
+function generateResetToken(email, expire, secret) {
+	return auth.signToken({email: email, expire: expire + Date.now(), fn:'reset'}, secret);
+}
+
+app.get('/restore', (req, res) => {
+	let options = {
+		root: path.join(__dirname, 'views')
+	}
+	res.sendFile('restore.html', options);
+})
+
+app.post('/restore', (req, res) => {
+	let email = req.body.email;
+	if (email) {
+		userModel.get_by_email(db, email, (user) => {
+			if (user) {
+				mail.mailReset(email, user.name, `http://localhost:${port}/reset`, generateResetToken(email, 100000, SEC))
+				res.send('Reset Email Sent')
+			} else {
+				res.send('Invalid Email')
+			}
+		})
+	}
+})
+
+app.get('/reset', (req, res) => {
+	if (req.query.token && auth.verifyToken(req.query.token, SEC)) {
+		let token = auth.decodeToken(req.query.token);
+		console.log(token)
+		if (token.data.fn === 'reset' && token.data.expire > Date.now()) {
+			//set cookie and send form
+			res.cookie('resetEmailToken', req.query.token);
+			let options = {
+				root: path.join(__dirname, 'views')
+			}
+			res.sendFile('reset.html', options);
+			return;
+		}
+	}
+	res.send('Invalid Token')
+})
+
+app.post('/reset', (req, res) => {
+	let tokenData = undefined
+	let valid = false
+	if (req.cookies.resetEmailToken) {
+		tokenData = auth.decodeToken(req.cookies.resetEmailToken)
+	}
+	if (tokenData && tokenData.data.fn === 'reset'
+		&& tokenData.data.expire > Date.now()
+		&& auth.verifyToken(req.cookies.resetEmailToken, SEC)) {
+			valid = true;
+		}
+	if (valid && req.body.password === req.body.confirm_password) {
+		// update password value
+		userModel.updateUserPassword(db, tokenData.data.email, req.body.password)
+		res.send('success!');
+		return;
+	}
+	res.send('Invalid')
+})
+
 // Logout
 app.get('/logout', (req, res) => {
 	res.clearCookie('JWT')
@@ -74,9 +136,9 @@ app.get('/validate', (req, res) => {
 	if (req.query.token && auth.verifyToken(req.query.token, SEC)) {
 		let token = auth.decodeToken(req.query.token);
 		console.log(token)
-		if (token.data.expire > Date.now()) {
+		if (token.data.expire > Date.now() && token.data.fn === 'validate') {
 			console.log('validating..')
-			users.validateEmail(db, token.data.email);
+			userModel.validateEmail(db, token.data.email);
 			res.cookie('JWT', auth.generateJWT(token.data.email, 100000, SEC),{httpOnly: true, maxAge: 100000});
 			res.redirect('/auth');
 		} else {
@@ -99,9 +161,9 @@ function validateRegistration(name, email, password) {
 			let hasNonalphas = /\W/.test(password);
 			return (hasUpperCase + hasLowerCase + hasNumbers + hasNonalphas > 3)
 		})(password))
-		users.get_by_email
+		userModel.get_by_email
 
-		users.get_by_email(db, email, (row) => {
+		userModel.get_by_email(db, email, (row) => {
 			tests.push(!Boolean(row))
 			resolve(tests)
 		})
@@ -109,7 +171,7 @@ function validateRegistration(name, email, password) {
 }
 
 function generateValidationToken(email, expire, secret) {
-	return auth.signToken({email: email, expire: expire + Date.now()}, secret);
+	return auth.signToken({email: email, expire: expire + Date.now(), fn:'validate'}, secret);
 }
 
 app.get('/register', (req, res) => {
@@ -126,7 +188,7 @@ app.post('/register', (req, res) => {
 	let pref_notify = Boolean(req.body.pref_notify);
 	validateRegistration(name, email, password).then((tests) => {
 		if (tests.every(val => val)) {
-			users.add(db, name, email, password, pref_notify, 0);
+			userModel.add(db, name, email, password, pref_notify, 0);
 			mail.mailValidate(email, name, `http://localhost:${port}/validate`, generateValidationToken(email, 100000, SEC));
 			res.send('Confirmation Email Sent');
 		} else {
@@ -138,13 +200,13 @@ app.post('/register', (req, res) => {
 
 //Users
 app.get('/users', (req, res) => {
-	users.list(db, (data) => {
+	userModel.list(db, (data) => {
 		res.send(data);
 	});
 });
 
 app.get('/users/:user', (req, res) => {
-	users.get_by_email(db, req.params.user, (data) => {
+	userModel.get_by_email(db, req.params.user, (data) => {
 		res.json(data);
 	})
 })
