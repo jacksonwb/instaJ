@@ -23,9 +23,20 @@ app.use(auth.authJWT(SEC));
 
 // Home
 app.get('/', (req, res) => {
-	res.send('HOME PAGE');
+	let options = {
+		root: path.join(__dirname, 'views')
+	}
+	res.sendFile('main.html', options);
 	// res.send('Hello World');
 });
+
+// Dist
+app.get('/public/main_app.bundle.js' ,(req, res) => {
+	let options = {
+		root: path.join(__dirname, 'dist')
+	}
+	res.sendFile('main_app.bundle.js', options);
+})
 
 // Auth test
 app.get('/auth', (req, res) => {
