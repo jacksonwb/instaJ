@@ -35,9 +35,10 @@ function getNextImageBatch(db, nbr, last_id, callback) {
 			LIMIT ?`, [last_id, nbr], (err, data) => {
 				if (err) {
 					console.error(err)
+					callback(err, null);
 					return;
 				}
-				callback(data)
+				callback(null, data)
 			})
 }
 

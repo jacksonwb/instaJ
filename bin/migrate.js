@@ -62,9 +62,9 @@ module.exports = function(db) {
 			dateCreated datetime DEFAULT(CURRENT_TIMESTAMP),
 			path VARCHAR
 		)`, () => {
-			imageModel.addImage(db, 1, 'coolimage.png');
-			imageModel.addImage(db, 1, 'otherimage.png');
-			imageModel.addImage(db, 2, 'lastimage.png');
+			imageModel.addImage(db, 1, 'coolimage.jpg');
+			imageModel.addImage(db, 1, 'otherimage.jpg');
+			imageModel.addImage(db, 2, 'lastimage.jpg');
 		})
 
 	// setTimeout(() => {

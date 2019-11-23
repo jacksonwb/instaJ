@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const db = require('./bin/db')
 const userModel = require('./models/userModel');
+const imageModel = require('./models/imageModel');
 const auth = require('./bin/authenticate');
 const SEC = 'Secret';
 const mail = require('./bin/mail');
@@ -220,6 +221,24 @@ app.get('/users/:user', (req, res) => {
 	userModel.get_by_email(db, req.params.user, (data) => {
 		res.json(data);
 	})
+})
+
+// Images
+app.get('/api/images', (req, res) => {
+	imageModel.getNextImageBatch(db, req.query.nbr, req.query.lastId, (err, imgs) => {
+		if (err) {
+			res.sendStatus(404).send()
+			return;
+		}
+		res.send(imgs)
+	})
+})
+
+app.get('/api/img/:path', (req, res) => {
+	let options = {
+		root: path.join(__dirname, 'img')
+	}
+	res.sendFile(req.params.path, options);
 })
 
 app.listen(port, () => console.log(`Listening on port: ${port}`));
