@@ -24,4 +24,18 @@ function getLikes(db, id_img, callback) {
 			})
 }
 
-module.exports = {addLike, getLikes, removeLike}
+function userLikesImage(db, id_img, user, callback) {
+	db.get(`SELECT * from likes
+			INNER JOIN users
+			ON likes.id_user=users.id_user
+			WHERE id_img=?
+			AND email=?`, id_img, user, (err, row) => {
+				if (err) {
+					console.error(err)
+					return
+				}
+				callback(Boolean(row))
+			})
+}
+
+module.exports = {addLike, getLikes, removeLike, userLikesImage}

@@ -29,7 +29,9 @@ function getAllImages(db, callback) {
 }
 
 function getNextImageBatch(db, nbr, last_id, callback) {
-	db.all(`SELECT * FROM images
+	db.all(`SELECT images.id_img, images.dateCreated, images.path, users.name FROM images
+			INNER JOIN users
+			ON images.id_user=users.id_user
 			WHERE id_img > ?
 			ORDER BY id_img
 			LIMIT ?`, [last_id, nbr], (err, data) => {

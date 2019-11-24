@@ -8,13 +8,17 @@ function addComment(db, id_img, id_user, comment) {
 }
 
 function getComments(db, id_img, callback) {
-	db.all(`SELECT * from comments
-			WHERE id_img=?`, id_img, (err, row) => {
+	db.all(`SELECT comments.cm_text, users.name, comments.id_cm from comments
+			INNER JOIN users
+			ON comments.id_user = users.id_user
+			WHERE id_img=?
+			`, id_img, (err, data) => {
 				if (err) {
 					console.error(err)
+					callback(err, null)
 					return;
 				}
-				callback(row)
+				callback(null, data)
 			})
 }
 

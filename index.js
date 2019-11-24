@@ -6,6 +6,8 @@ const logger = require('morgan');
 const db = require('./bin/db')
 const userModel = require('./models/userModel');
 const imageModel = require('./models/imageModel');
+const commentModel = require('./models/CommentModel');
+const likeModel = require('./models/likeModel');
 const auth = require('./bin/authenticate');
 const SEC = 'Secret';
 const mail = require('./bin/mail');
@@ -45,6 +47,14 @@ app.get('/auth', (req, res) => {
 		res.send('Welcome, ' + req.user);
 	} else {
 		res.send('Not Authenticated');
+	}
+})
+
+app.get('/api/auth', (req, res) => {
+	if (req.user) {
+		res.json({currentUser:req.user});
+	} else {
+		res.json({});
 	}
 })
 
@@ -211,15 +221,25 @@ app.post('/register', (req, res) => {
 })
 
 //Users
-app.get('/users', (req, res) => {
+app.get('/api/users', (req, res) => {
 	userModel.list(db, (data) => {
 		res.send(data);
 	});
 });
 
-app.get('/users/:user', (req, res) => {
+app.get('/api/users/:user', (req, res) => {
 	userModel.get_by_email(db, req.params.user, (data) => {
 		res.json(data);
+	})
+})
+
+app.get('/api/users/id/:id', (req, res) => {
+	userModel.get_by_id(db, req.params.id, (err, data) => {
+		if (err) {
+			res.sendStatus(404).send()
+			return;
+		}
+		res.send(data)
 	})
 })
 
@@ -239,6 +259,29 @@ app.get('/api/img/:path', (req, res) => {
 		root: path.join(__dirname, 'img')
 	}
 	res.sendFile(req.params.path, options);
+})
+
+// Comments
+app.get('/api/comments/:id_img', (req, res) => {
+	commentModel.getComments(db, req.params.id_img, (err, data) => {
+		if (err) {
+			res.sendStatus(404).send()
+			return;
+		}
+		res.send(data)
+	})
+})
+
+app.get('/api/likes/:id_img', (req, res) => {
+	likeModel.getLikes(db, req.params.id_img, (data) => {
+		res.json({numLikes:data.length})
+	})
+})
+
+app.get('/api/likes/isLiked/:id_img', (req, res) => {
+	likeModel.userLikesImage(db, req.params.id_img, req.user, (likes) => {
+		res.json({userLikes: likes})
+	})
 })
 
 app.listen(port, () => console.log(`Listening on port: ${port}`));

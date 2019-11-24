@@ -26,12 +26,23 @@ function add(db, name, email, password, pref_notify, is_verify) {
 }
 
 function get_by_email(db, email, callback) {
-db.get('SELECT * FROM users WHERE email=?', email, (err, row) => {
-	if (err) {
-		console.error(err);
-		return;
+	db.get('SELECT * FROM users WHERE email=?', email, (err, row) => {
+		if (err) {
+			console.error(err);
+			return;
+			}
+			callback(row);
+		})
+}
+
+function get_by_id(db, id, callback) {
+	db.get('SELECT * FROM users WHERE id_user=?', id, (err, row) => {
+		if (err) {
+			console.error(err);
+			callback(err, null);
+			return;
 		}
-		callback(row);
+		callback(null, row);
 	})
 }
 
@@ -83,4 +94,4 @@ function updateUserPassword(db, email, password) {
 	})
 }
 
-module.exports = {list, add, get_by_email, login, validateEmail, updateUserValue, updateUserPassword}
+module.exports = {list, add, get_by_email, get_by_id, login, validateEmail, updateUserValue, updateUserPassword}

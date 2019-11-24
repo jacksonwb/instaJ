@@ -25,6 +25,7 @@ module.exports = function(db) {
 		)`, () => {
 			commentModel.addComment(db, 1, 1, 'blah')
 			commentModel.addComment(db, 1, 1, 'yay')
+			commentModel.addComment(db, 2, 2, 'wahoo')
 		})
 
 	db.run(`
@@ -34,7 +35,7 @@ module.exports = function(db) {
 			UNIQUE(id_img, id_user)
 		)`, () => {
 			likeModel.addLike(db, 1, 1);
-			likeModel.addLike(db, 1, 1);
+			likeModel.addLike(db, 1, 2);
 			likeModel.addLike(db, 3, 1);
 		})
 
@@ -63,8 +64,8 @@ module.exports = function(db) {
 			path VARCHAR
 		)`, () => {
 			imageModel.addImage(db, 1, 'coolimage.jpg');
-			imageModel.addImage(db, 1, 'otherimage.jpg');
-			imageModel.addImage(db, 2, 'lastimage.jpg');
+			imageModel.addImage(db, 2, 'otherimage.jpg');
+			imageModel.addImage(db, 1, 'lastimage.jpg');
 		})
 
 	// setTimeout(() => {
