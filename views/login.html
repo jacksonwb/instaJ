@@ -2,18 +2,23 @@
 <html>
 	<head>
 		<title>Login!</title>
+		<link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700&display=swap" rel="stylesheet">
+		<link rel='stylesheet' type='text/css' href='/public/base-style.css'/>
 	</head>
 	<body>
-		<h1>login</h1>
-		<div>
-			<form action='/login' method='POST'>
-				<p>email</p>
-				<input type='text' name='email'>
-				<p>password</p>
-				<input type='text' name='password'>
-				<input type='submit'>
-			</form>
+		<div class="main-container center login-container">
+			<h2>Log in</h2>
+			<div>
+				<form action='/login' method='POST'>
+					<input type='text' name='email' placeholder="Email address">
+					<br/>
+					<input type='text' name='password' placeholder="Password">
+					<br/>
+					<input type='submit'>
+				</form>
+			</div>
+			<br/>
+			<a href='/restore'>Forgot Password?</a>
 		</div>
-		<a href='/restore'>Forgot Password?</a>
 	</body>
 </html>

@@ -18,7 +18,6 @@ class AppContainer extends React.Component {
 	render() {
 		return (
 			<div>
-				<h1>Camagru</h1>
 				<MenuBar currentUser={this.state.currentUser}/>
 				<Feed></Feed>
 			</div>
@@ -30,11 +29,18 @@ function MenuBar(props) {
 	console.log(props.currentUser)
 	if (props.currentUser) {
 		return (
-			<h2>Hello {props.currentUser}</h2>
+			<div>
+				<p>Camagru</p>
+				<p>{props.currentUser}</p>
+				<p>Log out</p>
+			</div>
 		)
 	}
 	return (
-		<h2>Menu Bar</h2>
+		<div>
+			<p>Camagru</p>
+			<p>Log in</p>
+		</div>
 	)
 }
 
@@ -75,7 +81,9 @@ class Post extends React.Component {
 	constructor(props) {
 		super(props)
 		this.state = {
-			comments: undefined
+			comments: undefined,
+			isLiked: false,
+			numLikes: 0
 		}
 	}
 
@@ -88,6 +96,18 @@ class Post extends React.Component {
 		}, err => {
 			console.log(err);
 		})
+
+		fetch(`/api/likes/isLiked/${this.props.img.id_img}`)
+		.then(response => response.json())
+		.then(data => {
+			this.setState({isLiked: data.userLikes})
+		})
+
+		fetch(`/api/likes/${this.props.img.id_img}`)
+		.then(response => response.json())
+		.then(data => {
+			this.setState({numLikes: data.numLikes})
+		})
 	}
 
 	render() {
@@ -97,7 +117,7 @@ class Post extends React.Component {
 				<h3>Post</h3>
 				<h4>{img.name}</h4>
 				<ImageContainer src={img.path}/>
-				<LikeBar/>
+				<LikeBar isLiked={this.state.isLiked} numLikes={this.state.numLikes}/>
 				<CommentContainer comments={this.state.comments}/>
 			</div>
 		)
@@ -116,7 +136,7 @@ class ImageContainer extends React.Component {
 class LikeBar extends React.Component {
 	render() {
 		return (
-			<p>likebars</p>
+			<p>numlikes: {this.props.numLikes} - isLiked: {this.props.isLiked ? 'liked!' : 'not liked!'}</p>
 		)
 	}
 }

@@ -15,14 +15,14 @@ const mail = require('./bin/mail');
 const app = express();
 const port = 3000;
 
-// TODO
-// Change User info
-
 // Middleware
 app.use(logger('dev'))
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(cookieParser());
 app.use(auth.authJWT(SEC));
+
+// Public
+app.use('/public', express.static('public'))
 
 // Home
 app.get('/', (req, res) => {
@@ -60,6 +60,10 @@ app.get('/api/auth', (req, res) => {
 
 // Login
 app.get('/login', (req, res) => {
+	if (req.user) {
+		res.redirect('/')
+		return;
+	}
 	let options = {
 		root: path.join(__dirname, 'views')
 	}
@@ -71,7 +75,7 @@ app.post('/login', (req, res) => {
 		if (valid && user.is_verify) {
 			//generate Token and set in cookie
 			res.cookie('JWT', auth.generateJWT(user.email, 100000, SEC),{httpOnly: true, maxAge: 100000});
-			res.redirect('/auth');
+			res.redirect('/');
 		} else if (valid && !user.is_verify) {
 			mail.mailValidate(user.email, user.name, `http://localhost:${port}/validate`, generateValidationToken(user.email, 100000, SEC));
 			res.send('Please Validate Email - Email resent');
@@ -272,6 +276,7 @@ app.get('/api/comments/:id_img', (req, res) => {
 	})
 })
 
+// Likes
 app.get('/api/likes/:id_img', (req, res) => {
 	likeModel.getLikes(db, req.params.id_img, (data) => {
 		res.json({numLikes:data.length})

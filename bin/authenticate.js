@@ -48,7 +48,7 @@ function authJWT(secret) {
 		let tokenData = undefined;
 		if (req.cookies.JWT) {
 			tokenData = decodeToken(req.cookies.JWT)
-			console.log(tokenData)
+			// console.log(tokenData)
 		}
 		if (req.cookies.JWT && tokenData.data.fn === 'auth'
 			&& tokenIsCurrent(tokenData)

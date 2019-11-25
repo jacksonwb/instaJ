@@ -1,0 +1,40 @@
+.main-container {
+	max-width: 500px;
+	border-width: 1px;
+	border-style: solid;
+	border-color: rgb(228, 228, 228);
+	border-radius: 10px;
+	padding: 10px;
+	text-align: center;
+	background-color: rgba(163, 163, 163, 0.596);
+}
+
+.center {
+	margin: auto;
+	width: 50%;
+}
+
+.login-container {
+	margin-top: 20%;
+}
+
+input {
+	border: 1px solid lightgray;
+	border-radius: 3px;
+	margin: 10px;
+	font-size: 15px;
+}
+
+a:link, a:visited {
+	text-decoration: none;
+	cursor: auto;
+	color: black;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+body {
+	font-family: 'Open Sans', sans-serif;
+}
