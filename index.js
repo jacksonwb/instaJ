@@ -15,6 +15,9 @@ const mail = require('./bin/mail');
 const app = express();
 const port = 3000;
 
+app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, 'views'))
+
 // Middleware
 app.use(logger('dev'))
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -64,10 +67,7 @@ app.get('/login', (req, res) => {
 		res.redirect('/')
 		return;
 	}
-	let options = {
-		root: path.join(__dirname, 'views')
-	}
-	res.sendFile('login.html', options);
+	res.render('login')
 })
 
 app.post('/login', (req, res) => {
@@ -80,10 +80,7 @@ app.post('/login', (req, res) => {
 			mail.mailValidate(user.email, user.name, `http://localhost:${port}/validate`, generateValidationToken(user.email, 100000, SEC));
 			res.send('Please Validate Email - Email resent');
 		} else {
-			let options = {
-				root: path.join(__dirname, 'views')
-			}
-			res.sendFile('./login_fail.html', options)
+			res.render('login', {errorMessage:'Bad Credentials!'})
 		}
 	})
 })
@@ -94,10 +91,7 @@ function generateResetToken(email, expire, secret) {
 }
 
 app.get('/restore', (req, res) => {
-	let options = {
-		root: path.join(__dirname, 'views')
-	}
-	res.sendFile('restore.html', options);
+	res.render('restore')
 })
 
 app.post('/restore', (req, res) => {
@@ -121,10 +115,7 @@ app.get('/reset', (req, res) => {
 		if (token.data.fn === 'reset' && token.data.expire > Date.now()) {
 			//set cookie and send form
 			res.cookie('resetEmailToken', req.query.token);
-			let options = {
-				root: path.join(__dirname, 'views')
-			}
-			res.sendFile('reset.html', options);
+			res.render('reset')
 			return;
 		}
 	}
@@ -201,10 +192,7 @@ function generateValidationToken(email, expire, secret) {
 }
 
 app.get('/register', (req, res) => {
-	let options = {
-		root: path.join(__dirname, 'views')
-	}
-	res.sendFile('register.html', options);
+	res.render('register')
 })
 
 app.post('/register', (req, res) => {

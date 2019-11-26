@@ -30,16 +30,16 @@ function MenuBar(props) {
 	if (props.currentUser) {
 		return (
 			<div>
-				<p>Camagru</p>
+				<p className='menu-bar-element'>Camagru</p>
 				<p>{props.currentUser}</p>
 				<p>Log out</p>
 			</div>
 		)
 	}
 	return (
-		<div>
-			<p>Camagru</p>
-			<p>Log in</p>
+		<div className='menu-bar'>
+			<p className='menu-bar-element-left'>Camagru</p>
+			<p className='menu-bar-element-right'>Log in</p>
 		</div>
 	)
 }
@@ -88,7 +88,6 @@ class Post extends React.Component {
 	}
 
 	componentDidMount() {
-
 		fetch(`/api/comments/${this.props.img.id_img}`)
 		.then(response => response.json())
 		.then(data => {
@@ -113,8 +112,7 @@ class Post extends React.Component {
 	render() {
 		let img = this.props.img;
 		return (
-			<div>
-				<h3>Post</h3>
+			<div className='post-container'>
 				<h4>{img.name}</h4>
 				<ImageContainer src={img.path}/>
 				<LikeBar isLiked={this.state.isLiked} numLikes={this.state.numLikes}/>
@@ -128,7 +126,9 @@ class ImageContainer extends React.Component {
 	render() {
 		let src = `/api/img/${this.props.src}`;
 		return (
-			<img src={src}></img>
+			<div className='image-container'>
+				<img className='post-image' src={src}></img>
+			</div>
 		)
 	}
 }

@@ -1,0 +1,11 @@
+extends base.pug
+
+append head
+	title='Camagru - Reset Password'
+block content
+	div.main-container.center.solo-container
+		h2 Reset Password
+		form(action='/reset' method='POST')
+			input(type='password' name='password' placeholder='Password')
+			input(type='password' name='confirm_password' placeholder='Confirm Password')
+			input(type='submit')

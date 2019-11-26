@@ -1,0 +1,16 @@
+extends base.pug
+
+append head
+	title='Camagru - Login'
+block content
+	div.main-container.center.solo-container
+		h2 Log in
+		if errorMessage
+			p #{errorMessage}
+		div
+			form(action='/login' method='POST')
+				input(type='text' name='email' placeholder='Email address')
+				input(type='password' name='password' placeholder='Password')
+				input(type='submit')
+			br
+			a(href='/restore') Forgot Password?

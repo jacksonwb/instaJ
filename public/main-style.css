@@ -1,0 +1,26 @@
+.menu-bar {
+	width: 100%;
+	overflow:hidden;
+	position: fixed;
+	top: 0;
+	background-color: lightgray;
+}
+
+.menu-bar-element-left {
+	display: block;
+	float:left;
+}
+
+.menu-bar-element-right {
+	display: block;
+	float: right;
+}
+
+.post-image {
+	max-width: 600px;
+}
+
+.post-container {
+	max-width: 600px;
+	border-top: 1px solid black;
+}
