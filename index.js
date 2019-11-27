@@ -21,6 +21,7 @@ app.set('views', path.join(__dirname, 'views'))
 // Middleware
 app.use(logger('dev'))
 app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json())
 app.use(cookieParser());
 app.use(auth.authJWT(SEC));
 
@@ -55,7 +56,13 @@ app.get('/auth', (req, res) => {
 
 app.get('/api/auth', (req, res) => {
 	if (req.user) {
-		res.json({currentUser:req.user});
+		userModel.get_by_email(db, req.user, (user) => {
+			res.json({
+				currentUser:req.user,
+				name: user.name
+			});
+
+		})
 	} else {
 		res.json({});
 	}
@@ -74,7 +81,7 @@ app.post('/login', (req, res) => {
 	userModel.login(db, req.body.email, req.body.password, (valid, user) => {
 		if (valid && user.is_verify) {
 			//generate Token and set in cookie
-			res.cookie('JWT', auth.generateJWT(user.email, 100000, SEC),{httpOnly: true, maxAge: 100000});
+			res.cookie('JWT', auth.generateJWT(user.email, 10000000, SEC),{httpOnly: true, maxAge: 10000000});
 			res.redirect('/');
 		} else if (valid && !user.is_verify) {
 			mail.mailValidate(user.email, user.name, `http://localhost:${port}/validate`, generateValidationToken(user.email, 100000, SEC));
@@ -265,6 +272,25 @@ app.get('/api/comments/:id_img', (req, res) => {
 })
 
 // Likes
+function validateLikeReq(db, likeStatus, id_img, email, callback) {
+	userModel.get_by_email(db, email, (user) => {
+		likeModel.userLikesImage(db, id_img, email, (isLiked) => {
+			if (likeStatus && !isLiked) {
+				likeModel.addLike(db, id_img, user.id_user)
+				console.log('liked!')
+				callback(true)
+			} else if (!likeStatus && isLiked) {
+				likeModel.removeLike(db, id_img, user.id_user)
+				callback(true)
+				console.log('unliked!')
+			} else {
+				console.log('invalid!')
+				callback(false)
+			}
+		})
+	})
+}
+
 app.get('/api/likes/:id_img', (req, res) => {
 	likeModel.getLikes(db, req.params.id_img, (data) => {
 		res.json({numLikes:data.length})
@@ -275,6 +301,18 @@ app.get('/api/likes/isLiked/:id_img', (req, res) => {
 	likeModel.userLikesImage(db, req.params.id_img, req.user, (likes) => {
 		res.json({userLikes: likes})
 	})
+})
+
+app.post('/api/likes', (req, res) => {
+	if (req.user && 'likeStatus' in req.body && req.body.id_img) {
+		validateLikeReq(db, req.body.likeStatus, req.body.id_img, req.user, (status) => {
+			if (!status)
+				res.status(401)
+			res.json({status})
+		})
+		return;
+	}
+	res.status(400).json({'status': false})
 })
 
 app.listen(port, () => console.log(`Listening on port: ${port}`));

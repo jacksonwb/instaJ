@@ -25,7 +25,8 @@ module.exports = function(db) {
 		)`, () => {
 			commentModel.addComment(db, 1, 1, 'blah')
 			commentModel.addComment(db, 1, 1, 'yay')
-			commentModel.addComment(db, 2, 2, 'wahoo')
+			commentModel.addComment(db, 3, 2, 'This is a long comment that will overflow the box for testing purposes')
+			commentModel.addComment(db, 3, 1, 'This is a anotherlong comment that will overflow the box for testing purposes. This one is even longer.')
 		})
 
 	db.run(`
