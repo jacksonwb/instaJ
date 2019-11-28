@@ -4,8 +4,11 @@ html(lang='en')
 		block head
 			link(href='https://fonts.googleapis.com/css?family=Open+Sans:400,600,700&display=swap' rel='stylesheet')
 			link(rel='stylesheet' type='text/css' href='/public/base-style.css')
+			link(rel='icon' href='/favicon.png')
 	body
 		block header
-			div
-				p Camagru
+			div(class='menu-bar')
+				a(href='/' class='menu-element')
+					img(src='/public/thumb.png' class='menu-bar-thumb')
+					p(class='menu-bar-text') Camagru
 		block content

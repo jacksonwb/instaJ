@@ -22,6 +22,30 @@
 	max-width: 600px;
 } */
 
+.menu-bar {
+	background-color: lightgray;
+}
+
+.menu-element {
+	margin-left:10px;
+	cursor: pointer;
+	/* float:left; */
+	display:block;
+
+}
+
+.menu-bar-thumb {
+	height:auto;
+	width:35px;
+	float:left;
+	margin-left: 10px;
+}
+
+.menu-bar-text {
+	margin:0px;
+	margin-bottom: 1px;
+}
+
 .primary-input {
 	display: block;
 	border: 1px solid lightgray;
@@ -38,7 +62,7 @@
 
 a:link, a:visited {
 	text-decoration: none;
-	cursor: auto;
+	cursor: pointer;
 	color: black;
 }
 

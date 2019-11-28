@@ -32,6 +32,14 @@ app.use(auth.authJWT(SEC));
 // Public
 app.use('/public', express.static('public'))
 
+//icon
+app.get('/favicon.png', (req, res) => {
+	let options = {
+		root: path.join(__dirname, 'public')
+	}
+	res.sendFile('favicon-64.png', options);
+})
+
 // Home
 app.get('/', (req, res) => {
 	let options = {
