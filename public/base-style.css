@@ -15,14 +15,14 @@
 }
 
 .solo-container {
-	margin-top: 20%;
+	margin-top: 20vh;
 }
 
 /* .app-container {
 	max-width: 600px;
 } */
 
-.primary-input input {
+.primary-input {
 	display: block;
 	border: 1px solid lightgray;
 	border-radius: 3px;
@@ -30,6 +30,10 @@
 	padding: 10px;
 	font-size: 15px;
 	width: auto;
+}
+
+.primary-input-button {
+	cursor: pointer;
 }
 
 a:link, a:visited {
@@ -45,4 +49,12 @@ a:hover {
 body {
 	font-family: 'Open Sans', sans-serif;
 	margin: 0px;
+}
+
+@media only screen and (max-width: 600px) {
+	.main-container {
+		width: 100%;
+		max-width: 100%;
+		border-radius:0px;
+	}
 }

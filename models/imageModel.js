@@ -7,6 +7,11 @@ function addImage(db, id_user, path) {
 		})
 }
 
+function removeImage(db, id_img) {
+	db.run(`DELETE from images
+			WHERE id_img=?`, id_img)
+}
+
 function getImage(db, id_img, callback) {
 	db.get(`SELECT * FROM images
 			WHERE id_img=?`, id_img, (err, row) => {
@@ -29,7 +34,7 @@ function getAllImages(db, callback) {
 }
 
 function getNextImageBatch(db, nbr, last_id, callback) {
-	db.all(`SELECT images.id_img, images.dateCreated, images.path, users.name FROM images
+	db.all(`SELECT images.id_img, images.dateCreated, images.path, users.name, users.id_user FROM images
 			INNER JOIN users
 			ON images.id_user=users.id_user
 			WHERE id_img > ?
@@ -44,4 +49,4 @@ function getNextImageBatch(db, nbr, last_id, callback) {
 			})
 }
 
-module.exports = {addImage, getImage, getAllImages, getNextImageBatch}
+module.exports = {addImage, getImage, getAllImages, getNextImageBatch, removeImage}

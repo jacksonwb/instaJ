@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom'
+import { TSImportEqualsDeclaration } from 'babel-types';
 
 class AppContainer extends React.Component {
 	constructor(props) {
@@ -18,7 +19,8 @@ class AppContainer extends React.Component {
 				this.setState({
 					currentUser: {
 						email: data.currentUser,
-						name: data.name
+						name: data.name,
+						id_user: data.id_user
 					}
 			})
 		})
@@ -54,7 +56,9 @@ function MenuBar(props) {
 class Feed extends React.Component {
 	constructor(props) {
 		super(props)
-		this.state = {images:undefined}
+		this.state = {
+			images:undefined}
+		this.deletePost = this.deletePost.bind(this)
 	}
 
 	componentDidMount() {
@@ -65,10 +69,37 @@ class Feed extends React.Component {
 		})
 	}
 
+	deletePost(id_img) {
+		return () => {
+			if (this.state.images) {
+				let images = this.state.images.filter((ob) => {
+					return ob.id_img != id_img
+				})
+				this.setState({images})
+				fetch(`/api/img/${id_img}`, {
+					method: 'delete',
+					headers: {
+						'Accept': 'application/json',
+						'Content-Type': 'application/json'
+						},
+					body: JSON.stringify({
+						confirm: true
+					})
+				})
+			}
+		}
+	}
+
 	getImages() {
 		if (this.state.images) {
 			return this.state.images.map(image => {
-				return <Post key={image.id_img} img={image} currentUser={this.props.currentUser}/>
+				return <Post
+					key={image.id_img}
+					img={image}
+					currentUser={this.props.currentUser}
+					showModal={this.state.showDeleteModal}
+					toggleDeleteModal={this.toggleDeleteModal}
+					deletePost={this.deletePost(image.id_img)}/>
 			})
 		}
 		return <h2>No Images...</h2>
@@ -81,7 +112,16 @@ class Feed extends React.Component {
 			</div>
 		)
 	}
-  }
+}
+
+function Modal(props) {
+	return(
+		<div>
+			<div className='modal-background' onClick={props.toggleDeleteModal}></div>
+			<div className='modal-message'>{props.children}</div>
+		</div>
+	)
+}
 
 class Post extends React.Component {
 	constructor(props) {
@@ -90,11 +130,13 @@ class Post extends React.Component {
 			comments: undefined,
 			isLiked: false,
 			numLikes: 0,
-			showNewCommentField: false
+			showNewCommentField: false,
+			showDeleteModal: false
 		}
 		this.toggleLike = this.toggleLike.bind(this)
 		this.appendComment = this.appendComment.bind(this)
 		this.toggleComment = this.toggleComment.bind(this)
+		this.toggleDeleteModal = this.toggleDeleteModal.bind(this)
 	}
 
 	componentDidMount() {
@@ -119,29 +161,50 @@ class Post extends React.Component {
 		})
 	}
 
+	toggleDeleteModal() {
+		this.setState((state) => ({
+			showDeleteModal: !state.showDeleteModal
+		}))
+	}
+
 	appendComment(commentContent) {
-		console.log((this.state.comments))
+		let newComment = {}
 		if (this.state.comments.length) {
 			let joined = this.state.comments
 			let id_cm = joined.map(val => val.id_cm).reduce((max, current) => Math.max(max, current))
-			joined.push({
+			newComment = {
 				cm_text: commentContent,
 				name: this.props.currentUser.name,
 				id_cm: id_cm + 1
-			})
+			}
+			joined.push(newComment)
 			console.log(joined)
 			this.setState({
-				comments: joined
+				comments: joined,
+				showNewCommentField: false
 			})
 		} else {
+			newComment = {
+				cm_text: commentContent,
+				name: this.props.currentUser.name,
+				id_cm: 1
+			}
 			this.setState({
-				comments: [{
-					cm_text: commentContent,
-					name: this.props.currentUser.name,
-					id_cm: 1
-				}]
+				comments: [newComment],
+				showNewCommentField: false
 			})
 		}
+		console.log(this.props.img.id_img)
+		fetch(`/api/comments/${this.props.img.id_img}`, {
+			method: 'post',
+			headers: {
+				'Accept': 'application/json',
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				comment: commentContent
+			})
+		})
 	}
 
 	toggleLike() {
@@ -182,9 +245,25 @@ class Post extends React.Component {
 
 	render() {
 		let img = this.props.img;
+		let displayDeleteIcon = this.props.currentUser && this.props.currentUser.id_user === img.id_user ?
+			true : false
+
+		let modal =  (
+			<Modal toggleDeleteModal={this.toggleDeleteModal}>
+				<h3>Delete post?</h3>
+				<div className='modal-button-container'>
+					<div className='modal-button-yes modal-button' onClick={this.props.deletePost}>Yes</div>
+					<div className='modal-button-no modal-button' onClick={this.toggleDeleteModal}>No</div>
+				</div>
+			</Modal>
+		)
+
 		return (
 			<div className='post-container'>
-				<h4 className='post-author'>{img.name}</h4>
+				{this.state.showDeleteModal && modal}
+				<TitleBar img={img}
+				displayDeleteIcon={displayDeleteIcon}
+				toggleDeleteModal={this.toggleDeleteModal}/>
 				<ImageContainer src={img.path} toggleLike={this.toggleLike}/>
 				<LikeBar isLiked={this.state.isLiked}
 					numLikes={this.state.numLikes}
@@ -197,6 +276,21 @@ class Post extends React.Component {
 					appendHandle={this.appendComment}
 					currentUser={this.props.currentUser}
 					appendComment={this.appendComment}/>
+			</div>
+		)
+	}
+}
+
+class TitleBar extends React.Component {
+	render () {
+		let icon = this.props.displayDeleteIcon ?
+			<img src='/public/delete.svg'
+				className='title-bar-delete-icon'
+				onClick={this.props.toggleDeleteModal}/> : ''
+		return (
+			<div className='title-bar-container'>
+				<h4 className='post-author'>{this.props.img.name}</h4>
+				{icon}
 			</div>
 		)
 	}
@@ -271,6 +365,11 @@ class NewComment extends React.Component {
 		this.state = {commentValue: ''}
 		this.handleChange = this.handleChange.bind(this)
 		this.handleEnter = this.handleEnter.bind(this)
+		this.NewCommentRef = React.createRef()
+	}
+
+	componentDidMount() {
+		this.NewCommentRef.current.focus()
 	}
 
 	handleChange(event) {
@@ -286,10 +385,12 @@ class NewComment extends React.Component {
 	render() {
 		return(
 			<div className='new-comment-container'>
-				<input className='new-comment-content' type='text'
+				<textarea className='new-comment-content' type='text'
+					ref={this.NewCommentRef}
 					value={this.state.commentValue}
 					onChange={this.handleChange}
 					placeholder='Comment...'
+					maxLength='500'
 					onKeyPress={this.handleEnter}/>
 			</div>
 		)
@@ -308,6 +409,6 @@ class Comment extends React.Component {
 }
 
 ReactDOM.render(
-<AppContainer/>,
-document.getElementById('app')
+	<AppContainer/>,
+	document.getElementById('app')
 );

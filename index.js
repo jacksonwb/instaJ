@@ -11,9 +11,13 @@ const likeModel = require('./models/likeModel');
 const auth = require('./bin/authenticate');
 const SEC = 'Secret';
 const mail = require('./bin/mail');
+const fs = require('fs');
 
 const app = express();
 const port = 3000;
+
+//TODO
+// Secure API - require req.user
 
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'))
@@ -59,7 +63,8 @@ app.get('/api/auth', (req, res) => {
 		userModel.get_by_email(db, req.user, (user) => {
 			res.json({
 				currentUser:req.user,
-				name: user.name
+				name: user.name,
+				id_user: user.id_user
 			});
 
 		})
@@ -107,9 +112,9 @@ app.post('/restore', (req, res) => {
 		userModel.get_by_email(db, email, (user) => {
 			if (user) {
 				mail.mailReset(email, user.name, `http://localhost:${port}/reset`, generateResetToken(email, 100000, SEC))
-				res.send('Reset Email Sent')
+				res.render('message', {message:'Reset email has been sent'})
 			} else {
-				res.send('Invalid Email')
+				res.render('message', {message: 'Invalid email'})
 			}
 		})
 	}
@@ -152,7 +157,7 @@ app.post('/reset', (req, res) => {
 // Logout
 app.get('/logout', (req, res) => {
 	res.clearCookie('JWT')
-	res.redirect('/auth')
+	res.redirect('/')
 })
 
 // Validate
@@ -260,6 +265,29 @@ app.get('/api/img/:path', (req, res) => {
 	res.sendFile(req.params.path, options);
 })
 
+app.delete('/api/img/:id_img', (req, res) => {
+	if (req.user && req.body.confirm) {
+		userModel.get_by_email(db, req.user, (user) => {
+			imageModel.getImage(db, req.params.id_img, (img) => {
+				if (user.id_user === img.id_user) {
+					console.log('deleting image...')
+					fs.unlink(path.join('img', img.path), (err) => {
+						if (err)
+							console.log(err)
+					})
+					imageModel.removeImage(db, req.params.id_img)
+					likeModel.removeAllLikes(db, req.params.id_img)
+					commentModel.removeAllComments(db, req.params.id_img)
+					res.sendStatus(200)
+				}
+			})
+		})
+	} else {
+		res.sendStatus(400)
+	}
+
+})
+
 // Comments
 app.get('/api/comments/:id_img', (req, res) => {
 	commentModel.getComments(db, req.params.id_img, (err, data) => {
@@ -269,6 +297,17 @@ app.get('/api/comments/:id_img', (req, res) => {
 		}
 		res.send(data)
 	})
+})
+
+app.post('/api/comments/:id_img', (req, res) => {
+	console.log('here')
+	if (req.params.id_img && req.user) {
+		userModel.get_by_email(db, req.user, (user) => {
+			commentModel.addComment(db, req.params.id_img, user.id_user, req.body.comment)
+		})
+	} else {
+		res.sendStatus(400)
+	}
 })
 
 // Likes

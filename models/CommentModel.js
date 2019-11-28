@@ -7,6 +7,11 @@ function addComment(db, id_img, id_user, comment) {
 		})
 }
 
+function removeAllComments(db, id_img) {
+	db.run(`DELETE from comments
+			WHERE id_img=?`, id_img)
+}
+
 function getComments(db, id_img, callback) {
 	db.all(`SELECT comments.cm_text, users.name, comments.id_cm from comments
 			INNER JOIN users
@@ -22,4 +27,4 @@ function getComments(db, id_img, callback) {
 			})
 }
 
-module.exports = {addComment, getComments}
+module.exports = {addComment, getComments, removeAllComments}

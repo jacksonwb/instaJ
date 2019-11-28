@@ -13,6 +13,12 @@ function removeLike(db, id_img, id_user) {
 			AND id_user=?`, [id_img, id_user])
 }
 
+function removeAllLikes(db, id_img) {
+	db.run(`DELETE FROM likes
+			WHERE id_img=?`, id_img)
+}
+
+
 function getLikes(db, id_img, callback) {
 	db.all(`SELECT * from likes
 			WHERE id_img=?`, id_img, (err, row) => {
@@ -38,4 +44,4 @@ function userLikesImage(db, id_img, user, callback) {
 			})
 }
 
-module.exports = {addLike, getLikes, removeLike, userLikesImage}
+module.exports = {addLike, getLikes, removeLike, userLikesImage, removeAllLikes}
