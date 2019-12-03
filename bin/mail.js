@@ -19,7 +19,12 @@ async function createTransporter() {
 
 async function mail(options) {
 	let transporter = await createTransporter();
-	let info = await transporter.sendMail(options);
+	let info;
+	try {
+		info = await transporter.sendMail(options);
+	} catch (e) {
+		console.error('Error: %s', e)
+	}
 
 	console.log("Message sent: %s", info.messageId);
 	console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
@@ -44,6 +49,19 @@ function mailReset(email, name, resetURL, token) {
 	}
 	mail(info).catch(console.error);
 }
+
+function mailNotify(email, link, message) {
+	let info = {
+		from: 'Info <info@camagru.com',
+		to: email,
+		subject: 'Update on your post!',
+		html: `
+			<p>${message}</p>
+			<a href=${link}>View Now!</a>
+		`
+	}
+	mail(info).catch(console.error)
+}
 // let info = {
 // 	from: 'Jackson <jackson@camagru.com>', // sender address
 // 	to: "bar@example.com",
@@ -54,4 +72,4 @@ function mailReset(email, name, resetURL, token) {
 
 // mail(info).catch(console.error);
 
-module.exports = {mail, mailValidate, mailReset};
+module.exports = {mail, mailValidate, mailReset, mailNotify};

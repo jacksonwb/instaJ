@@ -52,12 +52,27 @@ function MenuBar(props) {
 	)
 }
 
+function throttle(fn, wait) {
+	let time = Date.now()
+	return function() {
+		if (Date.now() > wait + time) {
+			fn()
+			time = Date.now()
+		}
+	}
+}
+
 class Feed extends React.Component {
 	constructor(props) {
 		super(props)
 		this.state = {
-			images:undefined}
+			images:undefined,
+			loading: false}
 		this.deletePost = this.deletePost.bind(this)
+		this.fetchNextImages = this.fetchNextImages.bind(this)
+		this.setScrollEvent = this.setScrollEvent.bind(this)
+
+		window.onscroll = throttle(() => {this.setScrollEvent(0.9, () => {this.fetchNextImages(1)})}, 100)
 	}
 
 	componentDidMount() {
@@ -66,6 +81,30 @@ class Feed extends React.Component {
 		.then(data => {
 			this.setState({images:data})
 		})
+	}
+
+	fetchNextImages(nbr) {
+		const lastId = this.state.images.map(img => img.id_img).reduce((max, current) => Math.max(max, current))
+		this.setState({loading: true})
+		fetch(`/api/images?nbr=${nbr}&lastId=${lastId}`)
+		.then(response => response.json())
+		.then(data => {
+			this.setState((state) => {
+				return {
+					loading: false,
+					images:state.images.concat(data)
+				}
+			})
+		})
+	}
+
+	setScrollEvent(ratio, handler) {
+		if (
+			(window.innerHeight + document.documentElement.scrollTop)
+			/ document.documentElement.offsetHeight > ratio
+		) {
+			handler()
+		}
 	}
 
 	deletePost(id_img) {
@@ -89,7 +128,7 @@ class Feed extends React.Component {
 		}
 	}
 
-	getImages() {
+	renderPosts() {
 		if (this.state.images) {
 			return this.state.images.map(image => {
 				return <Post
@@ -106,8 +145,11 @@ class Feed extends React.Component {
 
 	render() {
 		return (
-			<div className='center feed-container'>
-				{this.getImages()}
+			<div>
+				<div className='center feed-container'>
+					{this.renderPosts()}
+				</div>
+				{this.state.loading && <h2 style={{'textAlign':'center'}}>Loading...</h2>}
 			</div>
 		)
 	}
@@ -207,6 +249,8 @@ class Post extends React.Component {
 	}
 
 	toggleLike() {
+		if (!this.props.currentUser)
+			return
 		let isLiked = this.state.isLiked
 		if (isLiked) {
 			this.setState((state) => {

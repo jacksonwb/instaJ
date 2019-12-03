@@ -14,7 +14,7 @@ module.exports = function(db) {
 			is_verify BIT)`);
 
 	userModel.add(db, 'jackson', 'jbeall@email.com', 'pass', 0, 1);
-	userModel.add(db, 'bob', 'bob@email.com', 'pass', 0, 0);
+	userModel.add(db, 'bob', 'bob@email.com', 'pass', 1, 0);
 
 	db.run(`
 		CREATE TABLE comments (
@@ -66,6 +66,16 @@ module.exports = function(db) {
 		)`, () => {
 			imageModel.addImage(db, 1, 'coolimage.jpg');
 			imageModel.addImage(db, 2, 'otherimage.jpg');
+			imageModel.addImage(db, 1, 'lastimage.jpg');
+			imageModel.addImage(db, 1, 'lastimage.jpg');
+			imageModel.addImage(db, 1, 'lastimage.jpg');
+			imageModel.addImage(db, 1, 'lastimage.jpg');
+			imageModel.addImage(db, 1, 'lastimage.jpg');
+			imageModel.addImage(db, 1, 'lastimage.jpg');
+			imageModel.addImage(db, 1, 'lastimage.jpg');
+			imageModel.addImage(db, 1, 'lastimage.jpg');
+			imageModel.addImage(db, 1, 'lastimage.jpg');
+			imageModel.addImage(db, 1, 'lastimage.jpg');
 			imageModel.addImage(db, 1, 'lastimage.jpg');
 		})
 

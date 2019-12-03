@@ -18,6 +18,9 @@ const port = 3000;
 
 //TODO
 // Secure API - require req.user
+// Persist DB - configure migration script
+// Take photo page
+// Users     - Change username/password
 
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'))
@@ -185,23 +188,28 @@ app.get('/validate', (req, res) => {
 })
 
 // Register
+function createTestObject(bool, message) {
+	return {testVal: bool,
+			testName: message}
+}
+
 function validateRegistration(name, email, password) {
 	return new Promise((resolve, reject) => {
 		let tests = []
-		tests.push(/^[a-zA-Z0-9. ]+$/.test(name));
-		tests.push(/^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(email))
-		tests.push(password.length > 8)
-		tests.push(((password) => {
+		tests.push(createTestObject(/^[a-zA-Z0-9. ]+$/.test(name), "Invalid Name"));
+		tests.push(createTestObject(/^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(email), "Invalid Email Address"))
+		tests.push(createTestObject(password.length > 8, "Password must be at least 8 characters"))
+		tests.push(createTestObject(((password) => {
 			let hasUpperCase = /[A-Z]/.test(password);
 			let hasLowerCase = /[a-z]/.test(password);
 			let hasNumbers = /\d/.test(password);
 			let hasNonalphas = /\W/.test(password);
-			return (hasUpperCase + hasLowerCase + hasNumbers + hasNonalphas > 3)
-		})(password))
+			return (hasUpperCase + hasLowerCase + hasNumbers + hasNonalphas >= 3)
+		})(password), "Password must have 3 of the following: uppercase, lowercase, numbers, non-alphanumeric"))
 		userModel.get_by_email
 
 		userModel.get_by_email(db, email, (row) => {
-			tests.push(!Boolean(row))
+			tests.push(createTestObject(!Boolean(row), 'This email has already been used'))
 			resolve(tests)
 		})
 	})
@@ -221,13 +229,17 @@ app.post('/register', (req, res) => {
 	let password = req.body.password;
 	let pref_notify = Boolean(req.body.pref_notify);
 	validateRegistration(name, email, password).then((tests) => {
-		if (tests.every(val => val)) {
+		if (tests.every(val => val.testVal)) {
 			userModel.add(db, name, email, password, pref_notify, 0);
 			mail.mailValidate(email, name, `http://localhost:${port}/validate`, generateValidationToken(email, 100000, SEC));
-			res.send('Confirmation Email Sent');
+			res.render('message', {message: 'Confirmation Email Sent'})
 		} else {
-			console.log('Invalid registration')
-			res.redirect('/register')
+			for(test of tests) {
+				if (!test.testVal) {
+					res.render('register', {errorMessage: test.testName})
+					return
+				}
+			}
 		}
 	})
 })
@@ -308,10 +320,18 @@ app.get('/api/comments/:id_img', (req, res) => {
 })
 
 app.post('/api/comments/:id_img', (req, res) => {
-	console.log('here')
 	if (req.params.id_img && req.user) {
 		userModel.get_by_email(db, req.user, (user) => {
 			commentModel.addComment(db, req.params.id_img, user.id_user, req.body.comment)
+			imageModel.getImage(db, req.params.id_img, (image) => {
+				if (image) {
+					userModel.get_by_id(db, image.id_user, (err, user) => {
+						if (user && user.pref_notify) {
+							mail.mailNotify(user.email, 'http://localhost:3000', 'Your post was commented on!')
+						}
+					})
+				}
+			})
 		})
 	} else {
 		res.sendStatus(400)
@@ -325,10 +345,10 @@ function validateLikeReq(db, likeStatus, id_img, email, callback) {
 			if (likeStatus && !isLiked) {
 				likeModel.addLike(db, id_img, user.id_user)
 				console.log('liked!')
-				callback(true)
+				callback(true, true)
 			} else if (!likeStatus && isLiked) {
 				likeModel.removeLike(db, id_img, user.id_user)
-				callback(true)
+				callback(true, false)
 				console.log('unliked!')
 			} else {
 				console.log('invalid!')
@@ -352,10 +372,23 @@ app.get('/api/likes/isLiked/:id_img', (req, res) => {
 
 app.post('/api/likes', (req, res) => {
 	if (req.user && 'likeStatus' in req.body && req.body.id_img) {
-		validateLikeReq(db, req.body.likeStatus, req.body.id_img, req.user, (status) => {
-			if (!status)
+		validateLikeReq(db, req.body.likeStatus, req.body.id_img, req.user, (status, isLiked) => {
+			if (!status) {
 				res.status(401)
-			res.json({status})
+			} else {
+				if (isLiked) {
+					imageModel.getImage(db, req.body.id_img, (image) => {
+						if (image) {
+							userModel.get_by_id(db, image.id_user, (err, user) => {
+								if (user && user.pref_notify) {
+									mail.mailNotify(user.email, 'http://localhost:3000', 'Your post was liked!')
+								}
+							})
+						}
+					})
+				}
+				res.json({status})
+			}
 		})
 		return;
 	}
