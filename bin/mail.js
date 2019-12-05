@@ -62,14 +62,5 @@ function mailNotify(email, link, message) {
 	}
 	mail(info).catch(console.error)
 }
-// let info = {
-// 	from: 'Jackson <jackson@camagru.com>', // sender address
-// 	to: "bar@example.com",
-// 	subject: "Welcome!",
-// 	// text: "Hello world?",
-// 	html: "<b>Hello world?</b>"
-// };
-
-// mail(info).catch(console.error);
 
 module.exports = {mail, mailValidate, mailReset, mailNotify};

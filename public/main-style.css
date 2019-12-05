@@ -162,6 +162,25 @@
 	cursor: pointer;
 }
 
+.float-button {
+	position: fixed;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 5em;
+	height: 5em;
+	bottom: 40px;
+	right: 40px;
+	padding:10px;
+	border-radius: 100%;
+	background-color: lightgray;
+	box-shadow: 5px 5px 10px gray;
+}
+
+.float-button-img {
+	width: 60px;
+}
+
 a:hover {
 	cursor: pointer;
 }

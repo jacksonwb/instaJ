@@ -21,6 +21,8 @@ const port = 3000;
 // Persist DB - configure migration script
 // Take photo page
 // Users     - Change username/password
+// breakout routes
+// ordering - newest first
 
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'))
@@ -28,12 +30,13 @@ app.set('views', path.join(__dirname, 'views'))
 // Middleware
 app.use(logger('dev'))
 app.use(bodyParser.urlencoded({ extended: false }))
-app.use(bodyParser.json())
+app.use(bodyParser.json({limit: 10000000}))
 app.use(cookieParser());
 app.use(auth.authJWT(SEC));
 
 // Public
 app.use('/public', express.static('public'))
+app.use('/public/js', express.static('dist'))
 
 //icon
 app.get('/favicon.png', (req, res) => {
@@ -45,19 +48,22 @@ app.get('/favicon.png', (req, res) => {
 
 // Home
 app.get('/', (req, res) => {
-	let options = {
-		root: path.join(__dirname, 'views')
-	}
-	res.sendFile('main.html', options);
-	// res.send('Hello World');
+	res.render('app', {
+		title: 'Welcome!',
+		jslink: '/public/js/main.bundle.js'
+	})
 });
 
-// Dist
-app.get('/public/main_app.bundle.js' ,(req, res) => {
-	let options = {
-		root: path.join(__dirname, 'dist')
+// Photo
+app.get('/photo', (req, res) => {
+	if (req.user) {
+		res.render('app', {
+			title: 'Photo',
+			jslink: '/public/js/photo.bundle.js'
+		})
+	} else {
+		res.redirect('/login')
 	}
-	res.sendFile('main_app.bundle.js', options);
 })
 
 // Auth test
@@ -305,7 +311,22 @@ app.delete('/api/img/:id_img', (req, res) => {
 	} else {
 		res.sendStatus(400)
 	}
+})
 
+app.post('/api/newimg', (req, res) => {
+	if (req.user && req.body.image) {
+		console.log('Writing image...')
+		let base64Data = req.body.image.replace(/^data:image\/png;base64,/, '');
+		let filename = `img-${Date.now().toString()}`
+		fs.writeFile(path.join(__dirname, 'img', filename), base64Data, 'base64', (err) => {
+			if (err)
+				console.log(err)
+		})
+		userModel.get_by_email(db, req.user, (user) => {
+			imageModel.addImage(db, user.id_img, filename)
+		})
+	}
+	res.sendStatus(200)
 })
 
 // Comments
