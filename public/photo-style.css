@@ -1,3 +1,28 @@
+.photo-window {
+	opacity: 0;
+	transition: opacity 0.25s ease-in;
+}
+
+.poster {
+	width: 30%;
+	height: 30%;
+	position: absolute;
+	left: 35%;
+	top: 15%;
+	margin:auto;
+	text-align: center;
+}
+
+.poster-img {
+	height: 100%;
+	border-radius: 10%;
+}
+
+.poster-text {
+	font-weight: bold;
+	font-size: 24px;
+}
+
 .photo-container{
 	margin-top: 100px;
 	max-width: 80%;
@@ -8,4 +33,50 @@
 	width: 100%;
 	max-height: 90vh;
 	border-radius: 5px;
+}
+
+.effects-menu {
+	display: flex;
+	align-items: center;
+	justify-content: space-evenly;
+	border: 2px solid gray;
+	border-left:1px solid gray;
+	max-width: 80%;
+	margin: auto;
+	border-radius: 5px;
+	overflow:hidden;
+}
+
+.effects-button {
+	border-left: 1px solid gray;
+	cursor: pointer;
+	padding-top: 10px;
+	padding-bottom: 10px;
+	font-family: 'Asap', sans-serif;
+	/* font-weight: bold; */
+	font-size: 24px;
+	flex-grow: 1;
+	text-align: center;
+	background-color: lightgray;
+	/* border-radius: 5px; */
+}
+
+@media only screen and (max-width: 600px) {
+	.photo-container {
+		max-width: 100%;
+		width: 100%;
+	}
+	.photo-canvas {
+		border-radius: 0;
+	}
+	.effects-menu {
+		margin-top: 20px;
+		flex-direction: column;
+		border-bottom: 1px solid gray;
+	}
+	.effects-button {
+		border-bottom: 1px solid gray;
+		width: 100%;
+
+	}
 }

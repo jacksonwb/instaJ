@@ -17,12 +17,9 @@ const app = express();
 const port = 3000;
 
 //TODO
-// Secure API - require req.user
-// Persist DB - configure migration script
-// Take photo page
 // Users     - Change username/password
+// Upload file
 // breakout routes
-// ordering - newest first
 
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'))
@@ -252,18 +249,30 @@ app.post('/register', (req, res) => {
 
 //Users
 app.get('/api/users', (req, res) => {
+	if (!req.user) {
+		res.send(401)
+		return;
+	}
 	userModel.list(db, (data) => {
 		res.send(data);
 	});
 });
 
 app.get('/api/users/:user', (req, res) => {
+	if (!req.user) {
+		res.send(401)
+		return;
+	}
 	userModel.get_by_email(db, req.params.user, (data) => {
 		res.json(data);
 	})
 })
 
 app.get('/api/users/id/:id', (req, res) => {
+	if (!req.user) {
+		res.send(401)
+		return;
+	}
 	userModel.get_by_id(db, req.params.id, (err, data) => {
 		if (err) {
 			res.sendStatus(404).send()
@@ -274,10 +283,24 @@ app.get('/api/users/id/:id', (req, res) => {
 })
 
 // Images
+app.get('/api/allimages', (req, res) => {
+	if (!req.user) {
+		res.send(401)
+		return;
+	}
+	imageModel.getAllImages(db, (images) => {
+		res.send(images)
+	})
+})
+
 app.get('/api/images', (req, res) => {
+	if (!req.user) {
+		res.send(401)
+		return;
+	}
 	imageModel.getNextImageBatch(db, req.query.nbr, req.query.lastId, (err, imgs) => {
 		if (err) {
-			res.sendStatus(404).send()
+			res.sendStatus(400).send()
 			return;
 		}
 		res.send(imgs)
@@ -285,6 +308,10 @@ app.get('/api/images', (req, res) => {
 })
 
 app.get('/api/img/:path', (req, res) => {
+	if (!req.user) {
+		res.send(401)
+		return;
+	}
 	let options = {
 		root: path.join(__dirname, 'img')
 	}
@@ -323,14 +350,20 @@ app.post('/api/newimg', (req, res) => {
 				console.log(err)
 		})
 		userModel.get_by_email(db, req.user, (user) => {
-			imageModel.addImage(db, user.id_img, filename)
+			imageModel.addImage(db, user.id_user, filename)
 		})
+		res.sendStatus(200)
+	} else {
+		res.sendStatus(400)
 	}
-	res.sendStatus(200)
 })
 
 // Comments
 app.get('/api/comments/:id_img', (req, res) => {
+	if (!req.user) {
+		res.send(401)
+		return;
+	}
 	commentModel.getComments(db, req.params.id_img, (err, data) => {
 		if (err) {
 			res.sendStatus(404).send()
@@ -380,12 +413,20 @@ function validateLikeReq(db, likeStatus, id_img, email, callback) {
 }
 
 app.get('/api/likes/:id_img', (req, res) => {
+	if (!req.user) {
+		res.send(401)
+		return;
+	}
 	likeModel.getLikes(db, req.params.id_img, (data) => {
 		res.json({numLikes:data.length})
 	})
 })
 
 app.get('/api/likes/isLiked/:id_img', (req, res) => {
+	if (!req.user) {
+		res.send(401)
+		return;
+	}
 	likeModel.userLikesImage(db, req.params.id_img, req.user, (likes) => {
 		res.json({userLikes: likes})
 	})

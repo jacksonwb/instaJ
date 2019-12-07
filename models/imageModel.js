@@ -34,19 +34,38 @@ function getAllImages(db, callback) {
 }
 
 function getNextImageBatch(db, nbr, last_id, callback) {
-	db.all(`SELECT images.id_img, images.dateCreated, images.path, users.name, users.id_user FROM images
+	let query
+	if (last_id > 0) {
+		query = `SELECT images.id_img, images.datecreated, images.path, users.name, users.id_user from images
 			INNER JOIN users
 			ON images.id_user=users.id_user
-			WHERE id_img > ?
-			ORDER BY id_img
-			LIMIT ?`, [last_id, nbr], (err, data) => {
-				if (err) {
-					console.error(err)
-					callback(err, null);
-					return;
-				}
-				callback(null, data)
-			})
+			WHERE
+				images.id_img < $last_id
+			ORDER BY id_img desc
+			LIMIT $nbr`
+		db.all(query, {$nbr: nbr, $last_id: last_id}, (err, data) => {
+					if (err) {
+						console.error(err)
+						callback(err, null);
+						return;
+					}
+					callback(null, data)
+				})
+	} else {
+		query = `SELECT images.id_img, images.datecreated, images.path, users.name, users.id_user from images
+			INNER JOIN users
+			ON images.id_user=users.id_user
+			ORDER BY id_img DESC
+			LIMIT $nbr`
+		db.all(query, {$nbr: nbr}, (err, data) => {
+					if (err) {
+						console.error(err)
+						callback(err, null);
+						return;
+					}
+					callback(null, data)
+				})
+	}
 }
 
 module.exports = {addImage, getImage, getAllImages, getNextImageBatch, removeImage}

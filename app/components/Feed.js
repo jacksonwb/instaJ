@@ -21,11 +21,11 @@ export default class Feed extends React.Component {
 		this.fetchNextImages = this.fetchNextImages.bind(this)
 		this.setScrollEvent = this.setScrollEvent.bind(this)
 
-		window.onscroll = throttle(() => {this.setScrollEvent(0.9, () => {this.fetchNextImages(1)})}, 100)
+		window.onscroll = throttle(() => {this.setScrollEvent(0.9, () => {this.fetchNextImages(10)})}, 100)
 	}
 
 	componentDidMount() {
-		fetch(`/api/images?nbr=5&lastId=0`)
+		fetch(`/api/images?nbr=10&lastId=0`)
 		.then(response => response.json())
 		.then(data => {
 			this.setState({images:data})
@@ -33,7 +33,7 @@ export default class Feed extends React.Component {
 	}
 
 	fetchNextImages(nbr) {
-		const lastId = this.state.images.map(img => img.id_img).reduce((max, current) => Math.max(max, current))
+		const lastId = this.state.images.map(img => img.id_img).reduce((min, current) => Math.min(min, current))
 		this.setState({loading: true})
 		fetch(`/api/images?nbr=${nbr}&lastId=${lastId}`)
 		.then(response => response.json())

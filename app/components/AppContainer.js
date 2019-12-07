@@ -6,6 +6,7 @@ export default class AppContainer extends React.Component {
 		this.state = {
 			currentUser: undefined
 		}
+		this.divRef = React.createRef()
 	}
 
 	componentDidMount() {
@@ -22,6 +23,9 @@ export default class AppContainer extends React.Component {
 					}
 			})
 		})
+		setTimeout(() => {
+			this.divRef.current.style.opacity = '1';
+		}, 200)
 	}
 
 	render() {
@@ -32,7 +36,7 @@ export default class AppContainer extends React.Component {
 		})
 
 		return (
-			<div>
+			<div className='app-container' ref={this.divRef} style={{opacity: '0'}}>
 				{children}
 			</div>
 		);
