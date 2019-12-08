@@ -1,25 +1,33 @@
 const path = require('path')
+const fs = require('fs');
 const express = require('express');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
+
+// bin
 const db = require('./bin/db')
+const auth = require('./bin/authenticate');
+const mail = require('./bin/mail');
+
+// DB Models
 const userModel = require('./models/userModel');
 const imageModel = require('./models/imageModel');
 const commentModel = require('./models/CommentModel');
 const likeModel = require('./models/likeModel');
-const auth = require('./bin/authenticate');
-const SEC = 'Secret';
-const mail = require('./bin/mail');
-const fs = require('fs');
 
-const app = express();
+// Routes
+const authRouter = require('./routes/authRouter')
+const userRouter = require('./routes/userRouter')
+const imageRouter = require('./routes/imageRouter')
+
 const port = 3000;
+const app = express();
 
 //TODO
 // Users     - Change username/password
-// Upload file
 // breakout routes
+// imgRouter unlink problem
 
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'))
@@ -29,19 +37,11 @@ app.use(logger('dev'))
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json({limit: 10000000}))
 app.use(cookieParser());
-app.use(auth.authJWT(SEC));
+app.use(auth.authJWT(auth.SEC));
 
 // Public
 app.use('/public', express.static('public'))
 app.use('/public/js', express.static('dist'))
-
-//icon
-app.get('/favicon.png', (req, res) => {
-	let options = {
-		root: path.join(__dirname, 'public')
-	}
-	res.sendFile('favicon-64.png', options);
-})
 
 // Home
 app.get('/', (req, res) => {
@@ -63,307 +63,14 @@ app.get('/photo', (req, res) => {
 	}
 })
 
-// Auth test
-app.get('/auth', (req, res) => {
-	if (req.user) {
-		res.send('Welcome, ' + req.user);
-	} else {
-		res.send('Not Authenticated');
-	}
-})
+//Auth
+app.use('/', authRouter)
+app.use('/', userRouter)
+app.use('/', imageRouter)
 
-app.get('/api/auth', (req, res) => {
-	if (req.user) {
-		userModel.get_by_email(db, req.user, (user) => {
-			res.json({
-				currentUser:req.user,
-				name: user.name,
-				id_user: user.id_user
-			});
-
-		})
-	} else {
-		res.json({});
-	}
-})
-
-// Login
-app.get('/login', (req, res) => {
-	if (req.user) {
-		res.redirect('/')
-		return;
-	}
-	res.render('login')
-})
-
-app.post('/login', (req, res) => {
-	userModel.login(db, req.body.email, req.body.password, (valid, user) => {
-		if (valid && user.is_verify) {
-			//generate Token and set in cookie
-			res.cookie('JWT', auth.generateJWT(user.email, 10000000, SEC),{httpOnly: true, maxAge: 10000000});
-			res.redirect('/');
-		} else if (valid && !user.is_verify) {
-			mail.mailValidate(user.email, user.name, `http://localhost:${port}/validate`, generateValidationToken(user.email, 100000, SEC));
-			res.send('Please Validate Email - Email resent');
-		} else {
-			res.render('login', {errorMessage:'Bad Credentials!'})
-		}
-	})
-})
-
-// Restore Password
-function generateResetToken(email, expire, secret) {
-	return auth.signToken({email: email, expire: expire + Date.now(), fn:'reset'}, secret);
-}
-
-app.get('/restore', (req, res) => {
-	res.render('restore')
-})
-
-app.post('/restore', (req, res) => {
-	let email = req.body.email;
-	if (email) {
-		userModel.get_by_email(db, email, (user) => {
-			if (user) {
-				mail.mailReset(email, user.name, `http://localhost:${port}/reset`, generateResetToken(email, 100000, SEC))
-				res.render('message', {message:'Reset email has been sent'})
-			} else {
-				res.render('message', {message: 'Invalid email'})
-			}
-		})
-	}
-})
-
-app.get('/reset', (req, res) => {
-	if (req.query.token && auth.verifyToken(req.query.token, SEC)) {
-		let token = auth.decodeToken(req.query.token);
-		console.log(token)
-		if (token.data.fn === 'reset' && token.data.expire > Date.now()) {
-			//set cookie and send form
-			res.cookie('resetEmailToken', req.query.token);
-			res.render('reset')
-			return;
-		}
-	}
-	res.send('Invalid Token')
-})
-
-app.post('/reset', (req, res) => {
-	let tokenData = undefined
-	let valid = false
-	if (req.cookies.resetEmailToken) {
-		tokenData = auth.decodeToken(req.cookies.resetEmailToken)
-	}
-	if (tokenData && tokenData.data.fn === 'reset'
-		&& tokenData.data.expire > Date.now()
-		&& auth.verifyToken(req.cookies.resetEmailToken, SEC)) {
-			valid = true;
-		}
-	if (valid && req.body.password === req.body.confirm_password) {
-		// update password value
-		userModel.updateUserPassword(db, tokenData.data.email, req.body.password)
-		res.send('success!');
-		return;
-	}
-	res.send('Invalid')
-})
-
-// Logout
-app.get('/logout', (req, res) => {
-	res.clearCookie('JWT')
-	res.redirect('/')
-})
-
-// Validate
-app.get('/validate', (req, res) => {
-	if (req.query.token && auth.verifyToken(req.query.token, SEC)) {
-		let token = auth.decodeToken(req.query.token);
-		console.log(token)
-		if (token.data.expire > Date.now() && token.data.fn === 'validate') {
-			console.log('validating..')
-			userModel.validateEmail(db, token.data.email);
-			res.cookie('JWT', auth.generateJWT(token.data.email, 100000, SEC),{httpOnly: true, maxAge: 100000});
-			res.redirect('/auth');
-		} else {
-			res.send('Invalid Token')
-		}
-	}
-})
-
-// Register
-function createTestObject(bool, message) {
-	return {testVal: bool,
-			testName: message}
-}
-
-function validateRegistration(name, email, password) {
-	return new Promise((resolve, reject) => {
-		let tests = []
-		tests.push(createTestObject(/^[a-zA-Z0-9. ]+$/.test(name), "Invalid Name"));
-		tests.push(createTestObject(/^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(email), "Invalid Email Address"))
-		tests.push(createTestObject(password.length > 8, "Password must be at least 8 characters"))
-		tests.push(createTestObject(((password) => {
-			let hasUpperCase = /[A-Z]/.test(password);
-			let hasLowerCase = /[a-z]/.test(password);
-			let hasNumbers = /\d/.test(password);
-			let hasNonalphas = /\W/.test(password);
-			return (hasUpperCase + hasLowerCase + hasNumbers + hasNonalphas >= 3)
-		})(password), "Password must have 3 of the following: uppercase, lowercase, numbers, non-alphanumeric"))
-		userModel.get_by_email
-
-		userModel.get_by_email(db, email, (row) => {
-			tests.push(createTestObject(!Boolean(row), 'This email has already been used'))
-			resolve(tests)
-		})
-	})
-}
-
-function generateValidationToken(email, expire, secret) {
-	return auth.signToken({email: email, expire: expire + Date.now(), fn:'validate'}, secret);
-}
-
-app.get('/register', (req, res) => {
-	res.render('register')
-})
-
-app.post('/register', (req, res) => {
-	let name = req.body.name;
-	let email = req.body.email;
-	let password = req.body.password;
-	let pref_notify = Boolean(req.body.pref_notify);
-	validateRegistration(name, email, password).then((tests) => {
-		if (tests.every(val => val.testVal)) {
-			userModel.add(db, name, email, password, pref_notify, 0);
-			mail.mailValidate(email, name, `http://localhost:${port}/validate`, generateValidationToken(email, 100000, SEC));
-			res.render('message', {message: 'Confirmation Email Sent'})
-		} else {
-			for(test of tests) {
-				if (!test.testVal) {
-					res.render('register', {errorMessage: test.testName})
-					return
-				}
-			}
-		}
-	})
-})
-
-//Users
-app.get('/api/users', (req, res) => {
-	if (!req.user) {
-		res.send(401)
-		return;
-	}
-	userModel.list(db, (data) => {
-		res.send(data);
-	});
-});
-
-app.get('/api/users/:user', (req, res) => {
-	if (!req.user) {
-		res.send(401)
-		return;
-	}
-	userModel.get_by_email(db, req.params.user, (data) => {
-		res.json(data);
-	})
-})
-
-app.get('/api/users/id/:id', (req, res) => {
-	if (!req.user) {
-		res.send(401)
-		return;
-	}
-	userModel.get_by_id(db, req.params.id, (err, data) => {
-		if (err) {
-			res.sendStatus(404).send()
-			return;
-		}
-		res.send(data)
-	})
-})
-
-// Images
-app.get('/api/allimages', (req, res) => {
-	if (!req.user) {
-		res.send(401)
-		return;
-	}
-	imageModel.getAllImages(db, (images) => {
-		res.send(images)
-	})
-})
-
-app.get('/api/images', (req, res) => {
-	if (!req.user) {
-		res.send(401)
-		return;
-	}
-	imageModel.getNextImageBatch(db, req.query.nbr, req.query.lastId, (err, imgs) => {
-		if (err) {
-			res.sendStatus(400).send()
-			return;
-		}
-		res.send(imgs)
-	})
-})
-
-app.get('/api/img/:path', (req, res) => {
-	if (!req.user) {
-		res.send(401)
-		return;
-	}
-	let options = {
-		root: path.join(__dirname, 'img')
-	}
-	res.sendFile(req.params.path, options);
-})
-
-app.delete('/api/img/:id_img', (req, res) => {
-	if (req.user && req.body.confirm) {
-		userModel.get_by_email(db, req.user, (user) => {
-			imageModel.getImage(db, req.params.id_img, (img) => {
-				if (user.id_user === img.id_user) {
-					console.log('deleting image...')
-					fs.unlink(path.join('img', img.path), (err) => {
-						if (err)
-							console.log(err)
-					})
-					imageModel.removeImage(db, req.params.id_img)
-					likeModel.removeAllLikes(db, req.params.id_img)
-					commentModel.removeAllComments(db, req.params.id_img)
-					res.sendStatus(200)
-				}
-			})
-		})
-	} else {
-		res.sendStatus(400)
-	}
-})
-
-app.post('/api/newimg', (req, res) => {
-	if (req.user && req.body.image) {
-		console.log('Writing image...')
-		let base64Data = req.body.image.replace(/^data:image\/png;base64,/, '');
-		let filename = `img-${Date.now().toString()}`
-		fs.writeFile(path.join(__dirname, 'img', filename), base64Data, 'base64', (err) => {
-			if (err)
-				console.log(err)
-		})
-		userModel.get_by_email(db, req.user, (user) => {
-			imageModel.addImage(db, user.id_user, filename)
-		})
-		res.sendStatus(200)
-	} else {
-		res.sendStatus(400)
-	}
-})
 
 // Comments
 app.get('/api/comments/:id_img', (req, res) => {
-	if (!req.user) {
-		res.send(401)
-		return;
-	}
 	commentModel.getComments(db, req.params.id_img, (err, data) => {
 		if (err) {
 			res.sendStatus(404).send()
@@ -413,10 +120,6 @@ function validateLikeReq(db, likeStatus, id_img, email, callback) {
 }
 
 app.get('/api/likes/:id_img', (req, res) => {
-	if (!req.user) {
-		res.send(401)
-		return;
-	}
 	likeModel.getLikes(db, req.params.id_img, (data) => {
 		res.json({numLikes:data.length})
 	})

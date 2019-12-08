@@ -46,6 +46,7 @@ function PhotoWindow(props) {
 		.catch(error => {console.log(error)})
 	})
 
+
 	function getEffectToggle(effect) {
 		return function () {
 			if (currentEffects.includes(effect)) {
@@ -87,7 +88,7 @@ function PhotoWindow(props) {
 			<img className='poster-img' src='/public/thumb.png'/>
 			<p className='poster-text'>loading...</p>
 		</div>
-		<div ref={photoWindow} className='photo-window'>
+		<div ref={photoWindow} className='photo-window' >
 			<div className='photo-container center'>
 				<OutputCanvas windowRef={photoWindow} canvasRef={canvasEl} videoRef={videoEl} effects={currentEffects}/>
 				<video ref={videoEl} autoPlay style={{display:"none"}}></video>
@@ -120,6 +121,15 @@ function EffectsMenu(props) {
 function OutputCanvas(props) {
 	let img = new Image()
 	img.src = '/public/jackson.png'
+	let dropBoxRef = useRef(null)
+
+	const [showDrop, setShowDrop] = useState(false)
+	const [canvasImgSrc, setCanvasImgSrc] = useState(null)
+	let canvasSrc = canvasImgSrc || props.videoRef.current
+
+	useEffect(() => {
+		window.requestAnimationFrame(() => {drawToCanvas(canvasSrc)})
+	})
 
 	function applyFilterEffects(effects) {
 		let filterString = ''
@@ -160,24 +170,62 @@ function OutputCanvas(props) {
 					effectsDefs[effect]()
 			}
 		}
-
 	}
 
-	function drawToCanvas() {
+	function dragLeaveHandler(e) {
+		e.preventDefault()
+		e.stopPropagation()
+		console.log('Drag leave event')
+		setShowDrop(false)
+	}
+
+	function dragEnterHandler(e) {
+		e.preventDefault()
+		e.stopPropagation()
+		console.log('Drag enter event')
+		setShowDrop(true)
+	}
+
+	function dragOverHandler(e) {
+		e.preventDefault()
+		e.stopPropagation()
+		console.log('File in drop zone')
+	}
+
+	function dropHandler(e) {
+		e.preventDefault()
+		e.stopPropagation()
+		if (e.dataTransfer.items[0].kind === 'file') {
+			var file = e.dataTransfer.items[0].getAsFile();
+			console.log(`Got file ${file.name}`);
+			createImageBitmap(file).then((img) => {
+				setShowDrop(false)
+				let save = img
+				setCanvasImgSrc(save);
+				console.log(canvasImgSrc)
+			}).catch((err) => {
+				console.log(err)
+			})
+		}
+	}
+
+	function drawToCanvas(src) {
 		props.canvasRef.current.width = props.videoRef.current.videoWidth
 		props.canvasRef.current.height =props.videoRef.current.videoHeight
 		applyFilterEffects(props.effects)
-		props.canvasRef.current.getContext('2d').drawImage(props.videoRef.current, 0, 0, props.canvasRef.current.width, props.canvasRef.current.height)
+		if (src)
+			props.canvasRef.current.getContext('2d').drawImage(src, 0, 0, props.canvasRef.current.width, props.canvasRef.current.height)
 		applyImageEffects(props.effects)
-		window.requestAnimationFrame(drawToCanvas)
+		window.requestAnimationFrame(() => {drawToCanvas(canvasSrc)})
 	}
 
-	useEffect(() => {
-		window.requestAnimationFrame(drawToCanvas)
-	})
-
 	return (
-		<canvas id='main-canvas' className='photo-canvas' ref={props.canvasRef}></canvas>
+		<div className='drop-container' >
+			<canvas id='main-canvas' className='photo-canvas' ref={props.canvasRef}/>
+			<div ref={dropBoxRef} className='drop-box' style={{opacity: showDrop ? '1' : '0'}} onDragOver={dragOverHandler} onDrop={dropHandler} onDragLeave={dragLeaveHandler} onDragEnter={dragEnterHandler}>
+				Drop to upload...
+			</div>
+		</div>
 	)
 }
 

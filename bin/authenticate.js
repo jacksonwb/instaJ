@@ -1,6 +1,8 @@
 const crypto = require('crypto');
 const base64url = require('base64url');
 
+const SEC = 'Secret'
+
 function signTokenString(rawToken, secret) {
 	const hmac = crypto.createHmac('sha256', secret);
 
@@ -65,4 +67,4 @@ function authJWT(secret) {
 // console.log(token)
 // console.log(decodeToken(token));
 
-module.exports = {signToken, verifyToken, decodeToken, generateJWT, authJWT}
+module.exports = {signToken, verifyToken, decodeToken, generateJWT, authJWT, SEC}
