@@ -71,6 +71,7 @@
 .title-bar-delete-icon {
 	float: right;
 	cursor: pointer;
+	width: 1.5em;
 }
 
 .comment-container {
@@ -110,6 +111,7 @@
 	margin-right: 10px;
 	transition: opacity 1s ease-in-out;
 	cursor: pointer;
+	width: 1.5em;
 }
 
 .like-count {
@@ -121,6 +123,7 @@
 	float: right;
 	margin-right: 20px;
 	cursor: pointer;
+	width: 1.5em;
 }
 
 .modal-background {

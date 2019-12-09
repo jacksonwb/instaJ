@@ -21,7 +21,7 @@ export default class Feed extends React.Component {
 		this.fetchNextImages = this.fetchNextImages.bind(this)
 		this.setScrollEvent = this.setScrollEvent.bind(this)
 
-		window.onscroll = throttle(() => {this.setScrollEvent(0.9, () => {this.fetchNextImages(10)})}, 50)
+		window.onscroll = throttle(() => {this.setScrollEvent(0.9, () => {this.fetchNextImages(10)})}, 200)
 	}
 
 	componentDidMount() {

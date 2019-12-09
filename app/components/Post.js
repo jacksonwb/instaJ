@@ -22,7 +22,7 @@ export default class Post extends React.Component {
 		.then(data => {
 			this.setState({comments: data})
 		}, err => {
-			console.log(err);
+			onsole.log(err);
 		})
 
 		fetch(`/api/likes/isLiked/${this.props.img.id_img}`)
@@ -55,7 +55,6 @@ export default class Post extends React.Component {
 				id_cm: id_cm + 1
 			}
 			joined.push(newComment)
-			console.log(joined)
 			this.setState({
 				comments: joined,
 				showNewCommentField: false

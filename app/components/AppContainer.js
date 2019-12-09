@@ -13,7 +13,6 @@ export default class AppContainer extends React.Component {
 		fetch('/api/auth')
 		.then(response => response.json())
 		.then(data => {
-			console.log(data)
 			if (data.currentUser && data.name)
 				this.setState({
 					currentUser: {

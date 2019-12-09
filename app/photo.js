@@ -29,7 +29,7 @@ function PhotoWindow(props) {
 		}).then(()=>{console.log('submitted')})
 	}
 
-	const [currentEffects, setCurrentEffects] = useState([])
+	const currentEffects = []
 
 	useEffect(() => {
 		navigator.mediaDevices.getUserMedia({video:true})
@@ -46,23 +46,21 @@ function PhotoWindow(props) {
 		.catch(error => {console.log(error)})
 	})
 
-
 	function getEffectToggle(effect) {
 		return function () {
 			if (currentEffects.includes(effect)) {
 				currentEffects.splice(currentEffects.indexOf(effect), 1)
-				setCurrentEffects(currentEffects)
 			}
-			else
+			else {
 				currentEffects.push(effect)
-				setCurrentEffects(currentEffects)
+			}
 		}
 	}
 
 	let buttons = [
 		{
 			buttonText:'gray',
-			onClick: getEffectToggle('grayscale')
+			onClick: getEffectToggle('gray')
 		},
 		{
 			buttonText: 'sepia',
@@ -97,24 +95,34 @@ function PhotoWindow(props) {
 				submitPhoto(canvasEl.current.toDataURL())
 				window.location.href='/'
 			}}/>
-			<EffectsMenu buttons={buttons}/>
+			<EffectsMenu buttons={buttons} effects={currentEffects}/>
 		</div>
 		</>
 	)
 }
 
-function EffectsButton(props) {
-	return (
-		<div className='effects-button' onClick={props.clickHandler}>{props.buttonText}</div>
-	)
-}
 function EffectsMenu(props) {
+	const [, updateState] = useState()
 	return (
 		<div className='effects-menu'>
 			{props.buttons.map((button) => {
-				return <EffectsButton key={button.buttonText} buttonText={button.buttonText} clickHandler={button.onClick}/>
+				let handler = () => {
+					updateState([])
+					button.onClick()
+				}
+				return <EffectsButton key={button.buttonText} buttonText={button.buttonText} clickHandler={handler} active={props.effects.includes(button.buttonText)}/>
 			})}
 		</div>
+	)
+}
+
+function EffectsButton(props) {
+	let style = {}
+	if (props.active) {
+		style = {backgroundColor:'darkgray'}
+	}
+	return (
+		<div className='effects-button' onClick={props.clickHandler} style={style}>{props.buttonText}</div>
 	)
 }
 
@@ -135,7 +143,7 @@ function OutputCanvas(props) {
 		let filterString = ''
 
 		let effectsDefs = {
-			'grayscale': () => {
+			'gray': () => {
 				filterString += ' grayscale(100%)'
 			},
 			'sepia': () => {
