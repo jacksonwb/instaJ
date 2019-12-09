@@ -19,20 +19,27 @@
 	margin-top: 20vh;
 }
 
-/* .app-container {
-	max-width: 600px;
-} */
-
-.menu-bar {
+.menu-bar-static {
 	background-color: lightgray;
 	border-bottom: 2px solid darkgray;
+	position: fixed;
+	top:0;
+	height:40px;
+	width: 100%;
+	/* overflow: auto; */
+}
+
+.float-right {
+	display: block;
+	float: right;
+	margin:10px;
 }
 
 .menu-element {
 	margin-left:10px;
+	display: block;
 	cursor: pointer;
-	/* float:left; */
-	display:block;
+	float:left;
 
 }
 
@@ -47,7 +54,9 @@
 	margin:0px;
 	margin-bottom: 1px;
 	padding: 12px;
+	padding-left: 0px;
 	font-weight: bold;
+	display: inline-block;
 }
 
 .primary-input {

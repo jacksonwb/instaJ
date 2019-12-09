@@ -44,6 +44,11 @@ app.get('/', (req, res) => {
 	})
 });
 
+const fs = require('fs')
+app.get('/explode', (req, res) => {
+	fs.readFile('nonfile')
+})
+
 // Photo
 app.get('/photo', (req, res) => {
 	if (req.user) {

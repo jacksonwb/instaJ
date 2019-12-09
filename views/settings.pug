@@ -1,0 +1,22 @@
+extends base.pug
+
+append head
+	title='User Settings'
+
+block header
+	div(class='menu-bar-static')
+		div.menu-element
+			a(href='/')
+				img(src='/public/thumb.png' class='menu-bar-thumb')
+				p(class='menu-bar-text') Camagru
+		div.float-right
+			a(href='/logout') Log out
+block content
+	div.main-container.center.solo-container
+		h2 User Settings
+		a(href='/restore')
+			div Reset Password
+		a(href='/settings/username')
+			div Update Name
+		a(href='/settings/email')
+			div Update Email

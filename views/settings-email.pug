@@ -1,0 +1,21 @@
+extends base.pug
+
+append head
+	title='User Settings'
+
+block header
+	div(class='menu-bar-static')
+		div.menu-element
+			a(href='/')
+				img(src='/public/thumb.png' class='menu-bar-thumb')
+				p(class='menu-bar-text') Camagru
+		div.float-right
+			a(href='/logout') Log out
+block content
+	div.main-container.center.solo-container
+		h2 Change Email
+		if message
+			p #{message}
+		form(action='/settings/email' method='POST')
+			input.primary-input.center(type='text' name='email' placeholder='Enter new email...')
+			input.primary-input.center.primary-input-button(type='submit' submit='Submit')
