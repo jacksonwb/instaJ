@@ -23,10 +23,10 @@ module.exports = function(db) {
 			id_user INT,
 			cm_text VARCHAR
 		)`, () => {
-			commentModel.addComment(db, 1, 1, 'blah')
-			commentModel.addComment(db, 1, 1, 'yay')
-			commentModel.addComment(db, 3, 2, 'This is a long comment that will overflow the box for testing purposes')
-			commentModel.addComment(db, 3, 1, 'This is a anotherlong comment that will overflow the box for testing purposes. This one is even longer.')
+			commentModel.addComment(db, 1, 1, 'Hello there!')
+			commentModel.addComment(db, 1, 1, 'Wow this webapp is amazing!')
+			commentModel.addComment(db, 3, 2, 'This is a fun comment, hurray!')
+			commentModel.addComment(db, 3, 1, 'This is a long comment that will overflow the box for testing purposes. It will definitely be more than one line!')
 		})
 
 	db.run(`
