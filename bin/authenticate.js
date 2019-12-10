@@ -61,10 +61,4 @@ function authJWT(secret) {
 	}
 }
 
-
-// let token = signToken({sub:"1234567890",name:"John Doe",iat:1516239022}, 'secret');
-// console.log(verifyToken(token, 'secret'));
-// console.log(token)
-// console.log(decodeToken(token));
-
 module.exports = {signToken, verifyToken, decodeToken, generateJWT, authJWT, SEC}
