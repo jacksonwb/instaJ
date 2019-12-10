@@ -199,7 +199,26 @@ module.exports = function(port) {
 			res.redirect('/login')
 			return;
 		}
-		res.render('settings')
+		userModel.get_by_email(db, req.user, (user) => {
+			if (user) {
+				res.render('settings', {pref: Boolean(user.pref_notify)})
+			} else {
+				res.redirect('/login')
+			}
+		})
+	})
+
+	router.get('/settings/notify', (req, res) => {
+		if (!req.user) {
+			res.redirect('/login')
+			return;
+		}
+		if (!req.query.pref_notify) {
+			res.sendStatus(400)
+		} else {
+			userModel.updateUserValue(db, req.user, 'pref_notify', req.query.pref_notify)
+			res.redirect('/settings')
+		}
 	})
 
 	router.get('/settings/username', (req, res) => {

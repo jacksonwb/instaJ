@@ -20,3 +20,7 @@ block content
 			div Update Name
 		a(href='/settings/email')
 			div Update Email
+		if pref
+			a(href='/settings/notify?pref_notify=0') Disable email notifications
+		else
+			a(href='/settings/notify?pref_notify=1') Enable email notifications
