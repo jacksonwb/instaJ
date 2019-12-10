@@ -3,6 +3,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
+const helmet = require('helmet')
+const compression = require('compression')
 
 // CONST
 const port = 3000
@@ -22,7 +24,9 @@ app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'))
 
 // Middleware
+app.use(helmet())
 app.use(logger('dev'))
+app.use(compression())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json({limit: 10000000}))
 app.use(cookieParser());
