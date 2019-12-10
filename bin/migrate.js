@@ -40,23 +40,6 @@ module.exports = function(db) {
 			likeModel.addLike(db, 3, 1);
 		})
 
-	// setTimeout(() => {
-	// 	likeModel.getLikes(db, 1, (rows) => {
-	// 		console.log(rows);
-	// 	})
-	// }, 1000)
-	// setTimeout(() => {
-	// 	likeModel.removeLike(db, 1, 1);
-	// }, 2000)
-	// setTimeout(() => {
-	// 	likeModel.getLikes(db, 1, (rows) => {
-	// 		console.log(rows);
-	// 	})
-	// }, 3000)
-	// setTimeout(() => {
-	// 	likeModel.removeLike(db, 1, 1);
-	// }, 4000)
-
 	db.run(`
 		CREATE TABLE images (
 			id_img INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -67,39 +50,5 @@ module.exports = function(db) {
 			imageModel.addImage(db, 1, 'coolimage.jpg');
 			imageModel.addImage(db, 2, 'otherimage.jpg');
 			imageModel.addImage(db, 1, 'lastimage.jpg');
-			imageModel.addImage(db, 1, 'lastimage.jpg');
-			imageModel.addImage(db, 1, 'lastimage.jpg');
-			imageModel.addImage(db, 1, 'lastimage.jpg');
-			imageModel.addImage(db, 1, 'lastimage.jpg');
-			imageModel.addImage(db, 1, 'lastimage.jpg');
-			imageModel.addImage(db, 1, 'lastimage.jpg');
-			imageModel.addImage(db, 1, 'lastimage.jpg');
-			imageModel.addImage(db, 1, 'lastimage.jpg');
-			imageModel.addImage(db, 1, 'lastimage.jpg');
-			imageModel.addImage(db, 1, 'lastimage.jpg');
 		})
-
-	// setTimeout(() => {
-	// 	imageModel.getAllImages(db, (img) => {
-	// 		console.log(img);
-	// 		console.log('\n')
-	// 	})
-	// 	imageModel.getNextImageBatch(db, 2, 2, (imgs) => {
-	// 		console.log(imgs)
-	// 	})
-	// }, 1000)
-
-	// setTimeout(() => {
-	// 	// db.get('SELECT * from comments', (err, row) => {
-	// 	// 	if (err) {
-	// 	// 		console.log(err)
-	// 	// 		return;
-	// 	// 	}
-	// 	// 	console.log(row)
-	// 	// })
-
-	// 	commentModel.getComments(db, 1, (rows) => {
-	// 		console.log(rows);
-	// 	})
-	// }, 1000)
 };

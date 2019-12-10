@@ -18,10 +18,6 @@ const likeCommentRouter = require('./routes/likeCommentRouter')
 
 const app = express();
 
-//TODO
-// Users     - Change username/password
-// migrate file
-
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'))
 
@@ -43,11 +39,6 @@ app.get('/', (req, res) => {
 		jslink: '/public/js/main.bundle.js'
 	})
 });
-
-const fs = require('fs')
-app.get('/explode', (req, res) => {
-	fs.readFile('nonfile')
-})
 
 // Photo
 app.get('/photo', (req, res) => {
