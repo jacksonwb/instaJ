@@ -34,7 +34,8 @@
 .menu-bar-sub {
 	padding: 12px;
 	padding-left: 0px;
-	font-weight: bold;
+	font-family: 'Cookie', cursive;
+	font-size: 30px;
 	float: left;
 	margin: 0px;
 }

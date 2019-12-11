@@ -11,7 +11,7 @@ export default function MenuBar(props) {
 		<div className='menu-bar'>
 			<a href='/' className='menu-bar-element-left'>
 				<img className='menu-thumb' src='/public/thumb.png'/>
-				<p className='menu-bar-sub'>Camagru</p>
+				<p className='menu-bar-sub'>instaJ</p>
 			</a>
 			{authElem}
 			{props.currentUser && userElem}

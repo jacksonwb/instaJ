@@ -216,7 +216,7 @@ function OutputCanvas(props) {
 			})
 		}
 	}
-
+3
 	function drawToCanvas(src) {
 		props.canvasRef.current.width = props.videoRef.current.videoWidth
 		props.canvasRef.current.height =props.videoRef.current.videoHeight
